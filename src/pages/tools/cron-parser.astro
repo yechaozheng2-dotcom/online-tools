@@ -1,0 +1,312 @@
+---
+import Base from '../../layouts/Base.astro';
+---
+<Base title="Cron Expression Parser" description="Free online cron expression parser. Translate cron syntax into human-readable descriptions and preview the next 5 execution times. No libraries required.">
+
+  <nav style="font-size:0.8rem;color:var(--color-muted);margin-bottom:1.5rem;">
+    <a href="/" style="color:var(--color-muted);text-decoration:none;" onmouseover="this.style.color='var(--color-heading)'" onmouseout="this.style.color='var(--color-muted)'">All Tools</a>
+    <span style="margin:0 0.5rem;">›</span>
+    <span style="color:var(--color-body);">Cron Expression Parser</span>
+  </nav>
+
+  <div style="margin-bottom:1.75rem;">
+    <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.5rem;">
+      <span style="font-size:1.5rem;">⏰</span>
+      <h1 style="font-size:1.75rem;font-weight:700;color:var(--color-heading);margin:0;">Cron Expression Parser</h1>
+    </div>
+    <p style="color:var(--color-muted);font-size:0.9rem;margin:0;">Translate a cron expression into plain English and see the next 5 scheduled run times.</p>
+  </div>
+
+  <!-- Input -->
+  <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:12px;padding:1.25rem;margin-bottom:1rem;">
+    <label style="font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--color-muted);display:block;margin-bottom:0.5rem;">Cron Expression</label>
+    <div style="display:flex;gap:0.75rem;align-items:center;">
+      <input id="cron-input" type="text" value="0 9 * * 1-5" spellcheck="false"
+        style="flex:1;font-family:'JetBrains Mono',monospace;font-size:1rem;background:var(--color-surface2);color:var(--color-body);border:1px solid var(--color-border);border-radius:8px;padding:0.6rem 0.85rem;outline:none;transition:border-color 0.15s;"
+        onfocus="this.style.borderColor='var(--color-accent)'" onblur="this.style.borderColor='var(--color-border)'" oninput="parseCron()" />
+      <button onclick="parseCron()" style="padding:0.6rem 1.2rem;background:var(--color-accent);color:#fff;border:none;border-radius:8px;font-size:0.85rem;font-weight:600;cursor:pointer;">Parse</button>
+    </div>
+    <!-- Quick examples -->
+    <div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-top:0.75rem;">
+      {['0 9 * * 1-5', '*/15 * * * *', '0 0 1 * *', '30 18 * * 5', '0 2 * * *'].map(ex => (
+        <button onclick={`setExample('${ex}')`} style="padding:0.2rem 0.6rem;font-family:'JetBrains Mono',monospace;font-size:0.75rem;background:var(--color-surface2);color:var(--color-muted);border:1px solid var(--color-border);border-radius:6px;cursor:pointer;">{ex}</button>
+      ))}
+    </div>
+  </div>
+
+  <!-- Human description -->
+  <div id="description-box" style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:12px;padding:1.25rem;margin-bottom:1rem;display:none;">
+    <div style="font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--color-muted);margin-bottom:0.5rem;">Human Readable</div>
+    <div id="description" style="font-size:1.05rem;color:#a8ffb0;font-weight:600;"></div>
+  </div>
+
+  <!-- Next runs -->
+  <div id="next-runs-box" style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:12px;padding:1.25rem;margin-bottom:1rem;display:none;">
+    <div style="font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--color-muted);margin-bottom:0.75rem;">Next 5 Executions</div>
+    <div id="next-runs" style="display:flex;flex-direction:column;gap:0.4rem;font-family:'JetBrains Mono',monospace;font-size:0.85rem;"></div>
+  </div>
+
+  <!-- Error -->
+  <div id="error-box" style="background:var(--color-surface);border:1px solid var(--color-danger);border-radius:12px;padding:1rem;margin-bottom:1rem;display:none;">
+    <span id="error-msg" style="color:var(--color-danger);font-family:'JetBrains Mono',monospace;font-size:0.85rem;"></span>
+  </div>
+
+  <!-- Field reference -->
+  <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:12px;padding:1.25rem;">
+    <div style="font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--color-muted);margin-bottom:0.75rem;">Field Reference</div>
+    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:0.5rem;">
+      {[
+        {field:'Minute',range:'0–59'},
+        {field:'Hour',range:'0–23'},
+        {field:'Day of Month',range:'1–31'},
+        {field:'Month',range:'1–12'},
+        {field:'Day of Week',range:'0–7 (0/7=Sun)'},
+      ].map(r => (
+        <div style="background:var(--color-surface2);border:1px solid var(--color-border);border-radius:8px;padding:0.6rem;text-align:center;">
+          <div style="font-size:0.72rem;font-weight:600;color:var(--color-heading);margin-bottom:0.2rem;">{r.field}</div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:0.72rem;color:var(--color-muted);">{r.range}</div>
+        </div>
+      ))}
+    </div>
+    <div style="margin-top:0.75rem;display:flex;gap:1.5rem;flex-wrap:wrap;font-size:0.78rem;color:var(--color-muted);">
+      <span><span style="font-family:'JetBrains Mono',monospace;color:var(--color-body);">*</span> — any value</span>
+      <span><span style="font-family:'JetBrains Mono',monospace;color:var(--color-body);">1-5</span> — range</span>
+      <span><span style="font-family:'JetBrains Mono',monospace;color:var(--color-body);">1,3,5</span> — list</span>
+      <span><span style="font-family:'JetBrains Mono',monospace;color:var(--color-body);">*/5</span> — step</span>
+    </div>
+  </div>
+</Base>
+
+<script>
+  const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const DAYS = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const DAYS_SHORT = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+
+  function setExample(ex: string) {
+    (document.getElementById('cron-input') as HTMLInputElement).value = ex;
+    parseCron();
+  }
+
+  interface FieldSpec {
+    values: number[] | null; // null = any
+    step: number | null;
+  }
+
+  function parseField(token: string, min: number, max: number): number[] {
+    // Returns sorted list of matching values
+    const results: Set<number> = new Set();
+    const parts = token.split(',');
+    for (const part of parts) {
+      if (part === '*') {
+        for (let i = min; i <= max; i++) results.add(i);
+      } else if (part.includes('/')) {
+        const [rangePart, stepStr] = part.split('/');
+        const step = parseInt(stepStr);
+        if (isNaN(step) || step < 1) throw new Error(`Invalid step in "${part}"`);
+        let lo = min, hi = max;
+        if (rangePart !== '*') {
+          if (rangePart.includes('-')) {
+            [lo, hi] = rangePart.split('-').map(Number);
+          } else {
+            lo = parseInt(rangePart);
+            hi = max;
+          }
+        }
+        for (let i = lo; i <= hi; i += step) results.add(i);
+      } else if (part.includes('-')) {
+        const [lo, hi] = part.split('-').map(Number);
+        if (isNaN(lo) || isNaN(hi)) throw new Error(`Invalid range "${part}"`);
+        for (let i = lo; i <= hi; i++) results.add(i);
+      } else {
+        const n = parseInt(part);
+        if (isNaN(n)) throw new Error(`Invalid value "${part}"`);
+        results.add(n);
+      }
+    }
+    // Validate range
+    for (const v of results) {
+      if (v < min || v > max) throw new Error(`Value ${v} out of range [${min}, ${max}]`);
+    }
+    return Array.from(results).sort((a, b) => a - b);
+  }
+
+  function describeField(token: string, fieldName: string, names?: string[]): string {
+    if (token === '*') return `every ${fieldName}`;
+    if (token.startsWith('*/')) {
+      const step = token.slice(2);
+      return `every ${step} ${fieldName}s`;
+    }
+    if (token.includes('/')) {
+      const [range, step] = token.split('/');
+      return `every ${step} ${fieldName}s starting from ${range === '*' ? min : range}`;
+    }
+    if (token.includes('-')) {
+      const [lo, hi] = token.split('-');
+      const loName = names ? names[parseInt(lo)] : lo;
+      const hiName = names ? names[parseInt(hi)] : hi;
+      return `${loName} through ${hiName}`;
+    }
+    if (token.includes(',')) {
+      const parts = token.split(',');
+      const named = parts.map(p => names ? names[parseInt(p)] : p);
+      return named.join(', ');
+    }
+    return names ? names[parseInt(token)] ?? token : token;
+  }
+
+  function buildDescription(fields: string[]): string {
+    const [min, hour, dom, month, dow] = fields;
+
+    let timeStr = '';
+    if (min === '*' && hour === '*') {
+      timeStr = 'every minute';
+    } else if (min.startsWith('*/') && hour === '*') {
+      timeStr = `every ${min.slice(2)} minutes`;
+    } else if (hour === '*') {
+      timeStr = `at minute ${min} of every hour`;
+    } else {
+      const h = parseInt(hour);
+      const m = parseInt(min);
+      if (!isNaN(h) && !isNaN(m)) {
+        const hh = String(h).padStart(2, '0');
+        const mm = String(m).padStart(2, '0');
+        timeStr = `at ${hh}:${mm}`;
+      } else {
+        timeStr = `at ${describeField(min, 'minute')} past ${describeField(hour, 'hour')}`;
+      }
+    }
+
+    let dayStr = '';
+    if (dom === '*' && dow === '*') {
+      dayStr = 'every day';
+    } else if (dom !== '*' && dow === '*') {
+      dayStr = `on day ${dom} of the month`;
+    } else if (dom === '*' && dow !== '*') {
+      const dowNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+      dayStr = `on ${describeField(dow, 'weekday', dowNames)}`;
+    } else {
+      dayStr = `on day ${dom} of the month and on ${describeField(dow, 'weekday')}`;
+    }
+
+    let monthStr = '';
+    if (month !== '*') {
+      monthStr = ` in ${describeField(month, 'month', MONTHS)}`;
+    }
+
+    return `${timeStr} ${dayStr}${monthStr}`.trim();
+  }
+
+  function getNextRuns(fields: string[], count: number): Date[] {
+    const [minField, hourField, domField, monthField, dowField] = fields;
+
+    const minutes = parseField(minField, 0, 59);
+    const hours = parseField(hourField, 0, 23);
+    const doms = parseField(domField, 1, 31);
+    const months = parseField(monthField, 1, 12);
+    const dows = parseField(dowField, 0, 7).map(d => d === 7 ? 0 : d);
+    const dowSet = new Set(dows);
+    const domWild = domField === '*';
+    const dowWild = dowField === '*';
+
+    const runs: Date[] = [];
+    const now = new Date();
+    // Start from next minute
+    const start = new Date(now);
+    start.setSeconds(0, 0);
+    start.setMinutes(start.getMinutes() + 1);
+
+    let cursor = new Date(start);
+    let iterations = 0;
+    const maxIter = 500000;
+
+    while (runs.length < count && iterations < maxIter) {
+      iterations++;
+      const m = cursor.getMonth() + 1; // 1-12
+      const d = cursor.getDate();       // 1-31
+      const dow = cursor.getDay();       // 0-6
+      const h = cursor.getHours();
+      const min = cursor.getMinutes();
+
+      if (!months.includes(m)) {
+        // Advance to next matching month
+        cursor.setDate(1);
+        cursor.setHours(0, 0, 0, 0);
+        cursor.setMonth(cursor.getMonth() + 1);
+        continue;
+      }
+
+      // Check day: if both dom and dow are restricted, either can match (Unix behavior)
+      const domMatch = domWild || doms.includes(d);
+      const dowMatch = dowWild || dowSet.has(dow);
+      const dayMatch = (domWild && dowWild) ? true : (domWild ? dowMatch : (dowWild ? domMatch : (domMatch || dowMatch)));
+
+      if (!dayMatch) {
+        cursor.setDate(cursor.getDate() + 1);
+        cursor.setHours(0, 0, 0, 0);
+        continue;
+      }
+
+      if (!hours.includes(h)) {
+        // Advance to next hour
+        cursor.setHours(cursor.getHours() + 1, 0, 0, 0);
+        continue;
+      }
+
+      if (!minutes.includes(min)) {
+        cursor.setMinutes(cursor.getMinutes() + 1, 0, 0);
+        continue;
+      }
+
+      runs.push(new Date(cursor));
+      cursor.setMinutes(cursor.getMinutes() + 1, 0, 0);
+    }
+
+    return runs;
+  }
+
+  function parseCron() {
+    const raw = (document.getElementById('cron-input') as HTMLInputElement).value.trim();
+    const descBox = document.getElementById('description-box')!;
+    const nextBox = document.getElementById('next-runs-box')!;
+    const errBox = document.getElementById('error-box')!;
+
+    descBox.style.display = 'none';
+    nextBox.style.display = 'none';
+    errBox.style.display = 'none';
+
+    if (!raw) return;
+
+    try {
+      const fields = raw.split(/\s+/);
+      if (fields.length !== 5) throw new Error('A cron expression must have exactly 5 fields: minute hour day-of-month month day-of-week');
+
+      const description = buildDescription(fields);
+      document.getElementById('description')!.textContent = description.charAt(0).toUpperCase() + description.slice(1);
+      descBox.style.display = 'block';
+
+      const nextRuns = getNextRuns(fields, 5);
+      const container = document.getElementById('next-runs')!;
+      container.innerHTML = '';
+      nextRuns.forEach((date, i) => {
+        const el = document.createElement('div');
+        el.style.cssText = 'display:flex;align-items:center;gap:0.75rem;';
+        el.innerHTML = `<span style="color:var(--color-accent);font-weight:600;">#${i+1}</span><span style="color:#a8ffb0;">${date.toLocaleString('en-US',{weekday:'short',year:'numeric',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit',hour12:false})}</span>`;
+        container.appendChild(el);
+      });
+      if (nextRuns.length === 0) {
+        container.innerHTML = '<span style="color:var(--color-muted);">No upcoming runs found in search window.</span>';
+      }
+      nextBox.style.display = 'block';
+
+    } catch (e: any) {
+      document.getElementById('error-msg')!.textContent = `✗ ${e.message}`;
+      errBox.style.display = 'block';
+    }
+  }
+
+  (window as any).setExample = setExample;
+  (window as any).parseCron = parseCron;
+
+  // Parse on load
+  parseCron();
+</script>

@@ -1,0 +1,154 @@
+---
+import Base from '../../layouts/Base.astro';
+---
+<Base title="CSS Unit Converter" description="Free online CSS unit converter. Convert between px, rem, em, vw, and pt in real time. Customize base font size and viewport width.">
+
+  <nav style="font-size:0.8rem;color:var(--color-muted);margin-bottom:1.5rem;">
+    <a href="/" style="color:var(--color-muted);text-decoration:none;" onmouseover="this.style.color='var(--color-heading)'" onmouseout="this.style.color='var(--color-muted)'">All Tools</a>
+    <span style="margin:0 0.5rem;">›</span>
+    <span style="color:var(--color-body);">CSS Unit Converter</span>
+  </nav>
+
+  <div style="margin-bottom:1.75rem;">
+    <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.5rem;">
+      <span style="font-size:1.5rem;">📐</span>
+      <h1 style="font-size:1.75rem;font-weight:700;color:var(--color-heading);margin:0;">CSS Unit Converter</h1>
+    </div>
+    <p style="color:var(--color-muted);font-size:0.9rem;margin:0;">Convert between px, rem, em, vw, and pt. Edit any field — all others update in real time.</p>
+  </div>
+
+  <!-- Config -->
+  <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:12px;padding:1.25rem;margin-bottom:1rem;">
+    <div style="font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--color-muted);margin-bottom:0.75rem;">Configuration</div>
+    <div style="display:flex;gap:1.5rem;flex-wrap:wrap;">
+      <label style="display:flex;align-items:center;gap:0.5rem;font-size:0.85rem;color:var(--color-body);">
+        Base font size (px):
+        <input id="base-font" type="number" value="16" min="1" max="64"
+          style="width:70px;font-family:'JetBrains Mono',monospace;font-size:0.85rem;background:var(--color-surface2);color:var(--color-body);border:1px solid var(--color-border);border-radius:8px;padding:0.3rem 0.5rem;outline:none;text-align:center;"
+          onfocus="this.style.borderColor='var(--color-accent)'" onblur="this.style.borderColor='var(--color-border)'" oninput="onConfigChange()" />
+      </label>
+      <label style="display:flex;align-items:center;gap:0.5rem;font-size:0.85rem;color:var(--color-body);">
+        Viewport width (px):
+        <input id="viewport-width" type="number" value="1440" min="1" max="7680"
+          style="width:90px;font-family:'JetBrains Mono',monospace;font-size:0.85rem;background:var(--color-surface2);color:var(--color-body);border:1px solid var(--color-border);border-radius:8px;padding:0.3rem 0.5rem;outline:none;text-align:center;"
+          onfocus="this.style.borderColor='var(--color-accent)'" onblur="this.style.borderColor='var(--color-border)'" oninput="onConfigChange()" />
+      </label>
+    </div>
+  </div>
+
+  <!-- Unit inputs -->
+  <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:12px;padding:1.25rem;margin-bottom:1rem;">
+    <div style="font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--color-muted);margin-bottom:1rem;">Values</div>
+    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:0.75rem;">
+      {['px','rem','em','vw','pt'].map(unit => (
+        <div style="display:flex;flex-direction:column;gap:0.4rem;">
+          <label style="font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--color-muted);">{unit}</label>
+          <div style="position:relative;">
+            <input id={`unit-${unit}`} type="number" step="any" placeholder="0"
+              style="width:100%;font-family:'JetBrains Mono',monospace;font-size:1.1rem;font-weight:600;background:var(--color-surface2);color:#a8ffb0;border:1px solid var(--color-border);border-radius:8px;padding:0.6rem 0.75rem;outline:none;box-sizing:border-box;transition:border-color 0.15s;"
+              onfocus={`this.style.borderColor='var(--color-accent)'`} onblur={`this.style.borderColor='var(--color-border)'`}
+              oninput={`onUnitInput('${unit}')`} />
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+
+  <!-- Reference table -->
+  <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:12px;padding:1.25rem;">
+    <div style="font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--color-muted);margin-bottom:0.75rem;">Common Reference Values</div>
+    <div id="ref-table" style="font-family:'JetBrains Mono',monospace;font-size:0.82rem;"></div>
+  </div>
+</Base>
+
+<script>
+  const UNITS = ['px', 'rem', 'em', 'vw', 'pt'] as const;
+  type Unit = typeof UNITS[number];
+
+  let activeUnit: Unit | null = null;
+
+  function getConfig(): { base: number; vp: number } {
+    const base = parseFloat((document.getElementById('base-font') as HTMLInputElement).value) || 16;
+    const vp = parseFloat((document.getElementById('viewport-width') as HTMLInputElement).value) || 1440;
+    return { base, vp };
+  }
+
+  function toPx(value: number, unit: Unit, base: number, vp: number): number {
+    switch (unit) {
+      case 'px':  return value;
+      case 'rem': return value * base;
+      case 'em':  return value * base;
+      case 'vw':  return (value / 100) * vp;
+      case 'pt':  return value * (96 / 72);
+    }
+  }
+
+  function fromPx(px: number, unit: Unit, base: number, vp: number): number {
+    switch (unit) {
+      case 'px':  return px;
+      case 'rem': return px / base;
+      case 'em':  return px / base;
+      case 'vw':  return (px / vp) * 100;
+      case 'pt':  return px * (72 / 96);
+    }
+  }
+
+  function round(n: number, places: number = 4): number {
+    return parseFloat(n.toFixed(places));
+  }
+
+  function updateAll(sourceUnit: Unit, value: number) {
+    const { base, vp } = getConfig();
+    const px = toPx(value, sourceUnit, base, vp);
+    UNITS.forEach(unit => {
+      if (unit === sourceUnit) return;
+      const el = document.getElementById(`unit-${unit}`) as HTMLInputElement;
+      el.value = String(round(fromPx(px, unit, base, vp)));
+    });
+  }
+
+  function onUnitInput(unit: Unit) {
+    const el = document.getElementById(`unit-${unit}`) as HTMLInputElement;
+    const val = parseFloat(el.value);
+    if (isNaN(val)) {
+      UNITS.forEach(u => {
+        if (u !== unit) (document.getElementById(`unit-${u}`) as HTMLInputElement).value = '';
+      });
+      return;
+    }
+    activeUnit = unit;
+    updateAll(unit, val);
+    updateRefTable();
+  }
+
+  function onConfigChange() {
+    if (activeUnit === null) return;
+    const el = document.getElementById(`unit-${activeUnit}`) as HTMLInputElement;
+    const val = parseFloat(el.value);
+    if (!isNaN(val)) updateAll(activeUnit, val);
+    updateRefTable();
+  }
+
+  function updateRefTable() {
+    const { base, vp } = getConfig();
+    const pxValues = [4, 8, 12, 14, 16, 18, 20, 24, 32, 40, 48, 64];
+    const container = document.getElementById('ref-table')!;
+    const rows = pxValues.map(px => {
+      const cells = UNITS.map(unit => {
+        const val = round(fromPx(px, unit, base, vp));
+        return `<td style="padding:0.3rem 0.75rem;color:var(--color-body);text-align:right;">${val}</td>`;
+      }).join('');
+      return `<tr>${cells}</tr>`;
+    });
+    const headers = UNITS.map(u => `<th style="padding:0.3rem 0.75rem;color:var(--color-muted);font-weight:600;text-align:right;">${u}</th>`).join('');
+    container.innerHTML = `<table style="width:100%;border-collapse:collapse;"><thead><tr>${headers}</tr></thead><tbody>${rows.join('')}</tbody></table>`;
+  }
+
+  (window as any).onUnitInput = onUnitInput;
+  (window as any).onConfigChange = onConfigChange;
+
+  // Init default value (16px)
+  (document.getElementById('unit-px') as HTMLInputElement).value = '16';
+  updateAll('px', 16);
+  updateRefTable();
+</script>

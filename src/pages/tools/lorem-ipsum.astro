@@ -1,0 +1,145 @@
+---
+import Base from '../../layouts/Base.astro';
+---
+<Base title="Lorem Ipsum Generator" description="Free online Lorem Ipsum generator. Generate placeholder text by paragraphs, sentences or words. No API calls, runs entirely in your browser.">
+
+  <nav style="font-size:0.8rem;color:var(--color-muted);margin-bottom:1.5rem;">
+    <a href="/" style="color:var(--color-muted);text-decoration:none;" onmouseover="this.style.color='var(--color-heading)'" onmouseout="this.style.color='var(--color-muted)'">All Tools</a>
+    <span style="margin:0 0.5rem;">›</span>
+    <span style="color:var(--color-body);">Lorem Ipsum Generator</span>
+  </nav>
+
+  <div style="margin-bottom:1.75rem;">
+    <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.5rem;">
+      <span style="font-size:1.4rem;">📄</span>
+      <h1 style="font-size:1.75rem;font-weight:700;color:var(--color-heading);margin:0;">Lorem Ipsum Generator</h1>
+    </div>
+    <p style="color:var(--color-muted);font-size:0.9rem;margin:0;">Generate placeholder text for your designs and mockups. Entirely client-side, no API.</p>
+  </div>
+
+  <div style="display:flex;flex-wrap:wrap;gap:1rem;margin-bottom:1.25rem;background:var(--color-surface);border:1px solid var(--color-border);border-radius:12px;padding:1rem 1.25rem;">
+    <div style="display:flex;flex-direction:column;gap:0.35rem;min-width:140px;">
+      <label for="count" style="font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--color-muted);">Count</label>
+      <input id="count" type="number" min="1" max="50" value="3"
+        style="width:80px;background:var(--color-surface2);color:var(--color-body);border:1px solid var(--color-border);border-radius:8px;padding:0.4rem 0.6rem;font-size:0.85rem;outline:none;"
+        onfocus="this.style.borderColor='var(--color-accent)'" onblur="this.style.borderColor='var(--color-border)'" />
+    </div>
+    <div style="display:flex;flex-direction:column;gap:0.35rem;">
+      <label style="font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--color-muted);">Type</label>
+      <div style="display:flex;gap:0.4rem;">
+        <button id="type-paragraphs" onclick="setType('paragraphs')" style="padding:0.35rem 0.8rem;border-radius:7px;font-size:0.82rem;font-weight:600;cursor:pointer;background:var(--color-accent);color:#fff;border:none;">Paragraphs</button>
+        <button id="type-sentences"  onclick="setType('sentences')"  style="padding:0.35rem 0.8rem;border-radius:7px;font-size:0.82rem;font-weight:500;cursor:pointer;background:var(--color-surface2);color:var(--color-body);border:1px solid var(--color-border);">Sentences</button>
+        <button id="type-words"      onclick="setType('words')"      style="padding:0.35rem 0.8rem;border-radius:7px;font-size:0.82rem;font-weight:500;cursor:pointer;background:var(--color-surface2);color:var(--color-body);border:1px solid var(--color-border);">Words</button>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:0.35rem;">
+      <label style="font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--color-muted);">Length</label>
+      <div style="display:flex;gap:0.4rem;">
+        <button id="len-short"  onclick="setLen('short')"  style="padding:0.35rem 0.8rem;border-radius:7px;font-size:0.82rem;font-weight:500;cursor:pointer;background:var(--color-surface2);color:var(--color-body);border:1px solid var(--color-border);">Short</button>
+        <button id="len-medium" onclick="setLen('medium')" style="padding:0.35rem 0.8rem;border-radius:7px;font-size:0.82rem;font-weight:600;cursor:pointer;background:var(--color-accent);color:#fff;border:none;">Medium</button>
+        <button id="len-long"   onclick="setLen('long')"   style="padding:0.35rem 0.8rem;border-radius:7px;font-size:0.82rem;font-weight:500;cursor:pointer;background:var(--color-surface2);color:var(--color-body);border:1px solid var(--color-border);">Long</button>
+      </div>
+    </div>
+    <div style="display:flex;align-items:flex-end;">
+      <button onclick="generate()" style="padding:0.45rem 1.2rem;background:var(--color-accent);color:#fff;border:none;border-radius:8px;font-size:0.85rem;font-weight:600;cursor:pointer;">Generate</button>
+    </div>
+  </div>
+
+  <pre id="output" style="font-family:'JetBrains Mono',monospace;font-size:0.83rem;line-height:1.75;background:var(--color-surface);border:1px solid var(--color-border);border-radius:12px;padding:1.2rem;margin:0;white-space:pre-wrap;word-break:break-word;color:#a8ffb0;min-height:160px;"></pre>
+
+  <div style="display:flex;gap:0.5rem;margin-top:0.75rem;align-items:center;">
+    <button onclick="copyOutput()" style="padding:0.4rem 1rem;background:var(--color-surface2);color:var(--color-body);border:1px solid var(--color-border);border-radius:8px;font-size:0.82rem;font-weight:500;cursor:pointer;">📋 Copy All</button>
+    <span id="status" style="font-size:0.82rem;font-family:'JetBrains Mono',monospace;color:var(--color-success);"></span>
+  </div>
+
+</Base>
+
+<script>
+  const WORDS = 'lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua ut enim ad minim veniam quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur excepteur sint occaecat cupidatat non proident sunt in culpa qui officia deserunt mollit anim id est laborum curabitur pretium tincidunt lacus nulla gravida orci a odio nullam varius turpis pellentesque at malesuada ligula eros quisque sit amet est convallis commodo augue aliquam metus'.split(' ');
+
+  let currentType = 'paragraphs';
+  let currentLen  = 'medium';
+
+  const LEN_MAP: Record<string, [number, number]> = {
+    short:  [4, 8],
+    medium: [8, 14],
+    long:   [14, 22],
+  };
+  const PARA_SENTENCES = { short: [2, 3], medium: [4, 6], long: [7, 10] };
+
+  function rand(min: number, max: number) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+  }
+  function randWord() {
+    return WORDS[Math.floor(Math.random() * WORDS.length)];
+  }
+  function makeSentence() {
+    const [min, max] = LEN_MAP[currentLen];
+    const n = rand(min, max);
+    const ws = Array.from({ length: n }, randWord);
+    ws[0] = ws[0].charAt(0).toUpperCase() + ws[0].slice(1);
+    return ws.join(' ') + '.';
+  }
+  function makeParagraph() {
+    const [min, max] = (PARA_SENTENCES as any)[currentLen];
+    const n = rand(min, max);
+    return Array.from({ length: n }, makeSentence).join(' ');
+  }
+
+  function setType(t: string) {
+    currentType = t;
+    const types = ['paragraphs', 'sentences', 'words'];
+    const active = 'padding:0.35rem 0.8rem;border-radius:7px;font-size:0.82rem;font-weight:600;cursor:pointer;background:var(--color-accent);color:#fff;border:none;';
+    const idle   = 'padding:0.35rem 0.8rem;border-radius:7px;font-size:0.82rem;font-weight:500;cursor:pointer;background:var(--color-surface2);color:var(--color-body);border:1px solid var(--color-border);';
+    types.forEach(tp => {
+      const el = document.getElementById(`type-${tp}`)!;
+      el.style.cssText = tp === t ? active : idle;
+    });
+  }
+
+  function setLen(l: string) {
+    currentLen = l;
+    const lens = ['short', 'medium', 'long'];
+    const active = 'padding:0.35rem 0.8rem;border-radius:7px;font-size:0.82rem;font-weight:600;cursor:pointer;background:var(--color-accent);color:#fff;border:none;';
+    const idle   = 'padding:0.35rem 0.8rem;border-radius:7px;font-size:0.82rem;font-weight:500;cursor:pointer;background:var(--color-surface2);color:var(--color-body);border:1px solid var(--color-border);';
+    lens.forEach(ln => {
+      const el = document.getElementById(`len-${ln}`)!;
+      el.style.cssText = ln === l ? active : idle;
+    });
+  }
+
+  function generate() {
+    const count = parseInt((document.getElementById('count') as HTMLInputElement).value, 10) || 3;
+    const out = document.getElementById('output')!;
+    let result = '';
+
+    if (currentType === 'paragraphs') {
+      result = Array.from({ length: count }, makeParagraph).join('\n\n');
+    } else if (currentType === 'sentences') {
+      result = Array.from({ length: count }, makeSentence).join(' ');
+    } else {
+      const ws = Array.from({ length: count }, randWord);
+      result = ws.join(' ');
+    }
+
+    out.textContent = result;
+    document.getElementById('status')!.textContent = '';
+  }
+
+  function copyOutput() {
+    const text = document.getElementById('output')!.textContent;
+    if (!text) return;
+    navigator.clipboard.writeText(text).then(() => {
+      const s = document.getElementById('status')!;
+      s.textContent = '✓ Copied!'; s.style.color = 'var(--color-success)';
+      setTimeout(() => { s.textContent = ''; }, 2000);
+    });
+  }
+
+  (window as any).setType = setType;
+  (window as any).setLen  = setLen;
+  (window as any).generate = generate;
+  (window as any).copyOutput = copyOutput;
+
+  generate();
+</script>

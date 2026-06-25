@@ -1,0 +1,166 @@
+---
+import Base from '../../layouts/Base.astro';
+---
+<Base title="SVG to Data URI" description="Free online SVG to Data URI converter. Convert SVG code to base64 or URL-encoded data URIs for use in CSS and HTML. Instant browser-based preview.">
+
+  <nav style="font-size:0.8rem;color:var(--color-muted);margin-bottom:1.5rem;">
+    <a href="/" style="color:var(--color-muted);text-decoration:none;" onmouseover="this.style.color='var(--color-heading)'" onmouseout="this.style.color='var(--color-muted)'">All Tools</a>
+    <span style="margin:0 0.5rem;">›</span>
+    <span style="color:var(--color-body);">SVG to Data URI</span>
+  </nav>
+
+  <div style="margin-bottom:1.75rem;">
+    <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.5rem;">
+      <span style="font-size:1.5rem;">🖼️</span>
+      <h1 style="font-size:1.75rem;font-weight:700;color:var(--color-heading);margin:0;">SVG to Data URI</h1>
+    </div>
+    <p style="color:var(--color-muted);font-size:0.9rem;margin:0;">Paste SVG code and get a base64 or URL-encoded data URI you can use directly in CSS or HTML.</p>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem;">
+    <!-- Input -->
+    <div style="display:flex;flex-direction:column;gap:0.4rem;">
+      <span style="font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--color-muted);">SVG Input</span>
+      <textarea id="svg-input" placeholder="Paste your SVG code here..." spellcheck="false"
+        style="flex:1;font-family:'JetBrains Mono',monospace;font-size:0.8rem;line-height:1.6;background:var(--color-surface);color:var(--color-body);border:1px solid var(--color-border);border-radius:12px;padding:1rem;resize:none;outline:none;min-height:320px;transition:border-color 0.15s;"
+        onfocus="this.style.borderColor='var(--color-accent)'" onblur="this.style.borderColor='var(--color-border)'" oninput="convert()"></textarea>
+      <button onclick="loadSample()" style="align-self:flex-start;padding:0.3rem 0.8rem;background:var(--color-surface2);color:var(--color-muted);border:1px solid var(--color-border);border-radius:8px;font-size:0.78rem;cursor:pointer;">Load sample SVG</button>
+    </div>
+
+    <!-- Preview -->
+    <div style="display:flex;flex-direction:column;gap:0.4rem;">
+      <span style="font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--color-muted);">Preview</span>
+      <div id="preview-box" style="flex:1;background:var(--color-surface);border:1px solid var(--color-border);border-radius:12px;padding:1rem;min-height:320px;display:flex;align-items:center;justify-content:center;">
+        <div id="preview-placeholder" style="color:var(--color-muted);font-size:0.85rem;">Preview will appear here</div>
+        <img id="preview-img" style="display:none;max-width:100%;max-height:280px;" alt="SVG Preview" />
+      </div>
+    </div>
+  </div>
+
+  <!-- Base64 output -->
+  <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:12px;padding:1.25rem;margin-bottom:0.75rem;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.5rem;">
+      <span style="font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--color-muted);">Base64 Data URI</span>
+      <div style="display:flex;gap:0.5rem;align-items:center;">
+        <button onclick="copyBase64()" style="padding:0.3rem 0.8rem;background:var(--color-surface2);color:var(--color-body);border:1px solid var(--color-border);border-radius:8px;font-size:0.78rem;font-weight:500;cursor:pointer;">📋 Copy</button>
+        <span id="status-b64" style="font-size:0.78rem;color:var(--color-success);font-family:'JetBrains Mono',monospace;"></span>
+      </div>
+    </div>
+    <pre id="output-b64" style="font-family:'JetBrains Mono',monospace;font-size:0.75rem;line-height:1.5;background:var(--color-surface2);border:1px solid var(--color-border);border-radius:8px;padding:0.75rem;margin:0;overflow:auto;white-space:pre-wrap;word-break:break-all;max-height:100px;color:#a8ffb0;"></pre>
+  </div>
+
+  <!-- URL-encoded output -->
+  <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:12px;padding:1.25rem;margin-bottom:0.75rem;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.5rem;">
+      <span style="font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--color-muted);">URL-Encoded Data URI</span>
+      <div style="display:flex;gap:0.5rem;align-items:center;">
+        <button onclick="copyUrlEncoded()" style="padding:0.3rem 0.8rem;background:var(--color-surface2);color:var(--color-body);border:1px solid var(--color-border);border-radius:8px;font-size:0.78rem;font-weight:500;cursor:pointer;">📋 Copy</button>
+        <span id="status-url" style="font-size:0.78rem;color:var(--color-success);font-family:'JetBrains Mono',monospace;"></span>
+      </div>
+    </div>
+    <pre id="output-url" style="font-family:'JetBrains Mono',monospace;font-size:0.75rem;line-height:1.5;background:var(--color-surface2);border:1px solid var(--color-border);border-radius:8px;padding:0.75rem;margin:0;overflow:auto;white-space:pre-wrap;word-break:break-all;max-height:100px;color:#a8ffb0;"></pre>
+  </div>
+
+  <!-- Stats -->
+  <div id="stats-box" style="display:none;background:var(--color-surface);border:1px solid var(--color-border);border-radius:12px;padding:1rem;">
+    <div style="display:flex;gap:2rem;flex-wrap:wrap;font-size:0.82rem;">
+      <span style="color:var(--color-muted);">Original size: <span id="stat-orig" style="color:var(--color-body);font-family:'JetBrains Mono',monospace;"></span></span>
+      <span style="color:var(--color-muted);">Base64 size: <span id="stat-b64" style="color:var(--color-body);font-family:'JetBrains Mono',monospace;"></span></span>
+      <span style="color:var(--color-muted);">URL-encoded size: <span id="stat-url" style="color:var(--color-body);font-family:'JetBrains Mono',monospace;"></span></span>
+    </div>
+  </div>
+
+  <!-- Error -->
+  <div id="error-box" style="display:none;background:var(--color-surface);border:1px solid var(--color-danger);border-radius:12px;padding:1rem;margin-top:0.75rem;">
+    <span id="error-msg" style="color:var(--color-danger);font-family:'JetBrains Mono',monospace;font-size:0.85rem;"></span>
+  </div>
+</Base>
+
+<script>
+  const SAMPLE_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100">
+  <circle cx="50" cy="50" r="40" fill="#6366F1" />
+  <text x="50" y="55" text-anchor="middle" fill="white" font-size="20" font-family="sans-serif">SVG</text>
+</svg>`;
+
+  function formatBytes(n: number): string {
+    if (n < 1024) return `${n} B`;
+    return `${(n / 1024).toFixed(2)} KB`;
+  }
+
+  function convert() {
+    const svg = (document.getElementById('svg-input') as HTMLTextAreaElement).value.trim();
+    const b64Out = document.getElementById('output-b64')!;
+    const urlOut = document.getElementById('output-url')!;
+    const errBox = document.getElementById('error-box')!;
+    const statsBox = document.getElementById('stats-box')!;
+    const previewImg = document.getElementById('preview-img') as HTMLImageElement;
+    const previewPH = document.getElementById('preview-placeholder')!;
+
+    b64Out.textContent = '';
+    urlOut.textContent = '';
+    errBox.style.display = 'none';
+    statsBox.style.display = 'none';
+    previewImg.style.display = 'none';
+    previewPH.style.display = 'flex';
+
+    if (!svg) return;
+
+    try {
+      // Validate it looks like SVG
+      if (!svg.includes('<svg')) throw new Error('Input does not appear to be valid SVG markup.');
+
+      // Base64
+      const b64 = `data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(svg)))}`;
+      b64Out.textContent = b64;
+
+      // URL-encoded (no base64)
+      const urlEncoded = `data:image/svg+xml,${encodeURIComponent(svg)}`;
+      urlOut.textContent = urlEncoded;
+
+      // Preview using base64 (more reliable across browsers)
+      previewImg.src = b64;
+      previewImg.style.display = 'block';
+      previewPH.style.display = 'none';
+
+      // Stats
+      document.getElementById('stat-orig')!.textContent = formatBytes(new TextEncoder().encode(svg).length);
+      document.getElementById('stat-b64')!.textContent = formatBytes(new TextEncoder().encode(b64).length);
+      document.getElementById('stat-url')!.textContent = formatBytes(new TextEncoder().encode(urlEncoded).length);
+      statsBox.style.display = 'block';
+
+    } catch (e: any) {
+      document.getElementById('error-msg')!.textContent = `✗ ${e.message}`;
+      errBox.style.display = 'block';
+    }
+  }
+
+  function copyBase64() {
+    const text = document.getElementById('output-b64')!.textContent || '';
+    if (!text) return;
+    navigator.clipboard.writeText(text).then(() => {
+      const s = document.getElementById('status-b64')!;
+      s.textContent = '✓ Copied!';
+      setTimeout(() => { s.textContent = ''; }, 2000);
+    });
+  }
+
+  function copyUrlEncoded() {
+    const text = document.getElementById('output-url')!.textContent || '';
+    if (!text) return;
+    navigator.clipboard.writeText(text).then(() => {
+      const s = document.getElementById('status-url')!;
+      s.textContent = '✓ Copied!';
+      setTimeout(() => { s.textContent = ''; }, 2000);
+    });
+  }
+
+  function loadSample() {
+    (document.getElementById('svg-input') as HTMLTextAreaElement).value = SAMPLE_SVG;
+    convert();
+  }
+
+  (window as any).convert = convert;
+  (window as any).copyBase64 = copyBase64;
+  (window as any).copyUrlEncoded = copyUrlEncoded;
+  (window as any).loadSample = loadSample;
+</script>

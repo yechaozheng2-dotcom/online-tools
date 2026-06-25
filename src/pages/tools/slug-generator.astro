@@ -1,0 +1,153 @@
+---
+import Base from '../../layouts/Base.astro';
+---
+<Base title="Slug Generator" description="Free online slug generator. Convert any text to URL-friendly slugs. Choose separator, handle numbers and set max length. Runs in your browser.">
+
+  <nav style="font-size:0.8rem;color:var(--color-muted);margin-bottom:1.5rem;">
+    <a href="/" style="color:var(--color-muted);text-decoration:none;" onmouseover="this.style.color='var(--color-heading)'" onmouseout="this.style.color='var(--color-muted)'">All Tools</a>
+    <span style="margin:0 0.5rem;">›</span>
+    <span style="color:var(--color-body);">Slug Generator</span>
+  </nav>
+
+  <div style="margin-bottom:1.75rem;">
+    <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.5rem;">
+      <span style="font-size:1.4rem;">🔗</span>
+      <h1 style="font-size:1.75rem;font-weight:700;color:var(--color-heading);margin:0;">Slug Generator</h1>
+    </div>
+    <p style="color:var(--color-muted);font-size:0.9rem;margin:0;">Convert any text into a clean, URL-friendly slug. Customize the separator, number handling and max length.</p>
+  </div>
+
+  <div style="margin-bottom:1rem;">
+    <span style="font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--color-muted);">Input Text</span>
+    <textarea id="input" placeholder="Enter text to slugify..." spellcheck="false" rows="3"
+      style="width:100%;box-sizing:border-box;margin-top:0.4rem;font-family:'JetBrains Mono',monospace;font-size:0.85rem;line-height:1.65;background:var(--color-surface);color:var(--color-body);border:1px solid var(--color-border);border-radius:12px;padding:1rem;resize:vertical;outline:none;transition:border-color 0.15s;"
+      onfocus="this.style.borderColor='var(--color-accent)'" onblur="this.style.borderColor='var(--color-border)'" oninput="slugify()"></textarea>
+  </div>
+
+  <div style="display:flex;flex-wrap:wrap;gap:1.5rem;background:var(--color-surface);border:1px solid var(--color-border);border-radius:12px;padding:1rem 1.25rem;margin-bottom:1rem;">
+    <div style="display:flex;flex-direction:column;gap:0.35rem;">
+      <span style="font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--color-muted);">Separator</span>
+      <div style="display:flex;gap:0.4rem;">
+        <button id="sep-hyphen" onclick="setSep('-')" style="padding:0.35rem 0.8rem;border-radius:7px;font-size:0.82rem;font-weight:600;cursor:pointer;background:var(--color-accent);color:#fff;border:none;">- hyphen</button>
+        <button id="sep-under"  onclick="setSep('_')" style="padding:0.35rem 0.8rem;border-radius:7px;font-size:0.82rem;font-weight:500;cursor:pointer;background:var(--color-surface2);color:var(--color-body);border:1px solid var(--color-border);">_ underscore</button>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:0.35rem;">
+      <span style="font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--color-muted);">Numbers</span>
+      <div style="display:flex;gap:0.4rem;">
+        <button id="num-keep"   onclick="setNum(true)"  style="padding:0.35rem 0.8rem;border-radius:7px;font-size:0.82rem;font-weight:600;cursor:pointer;background:var(--color-accent);color:#fff;border:none;">Keep</button>
+        <button id="num-remove" onclick="setNum(false)" style="padding:0.35rem 0.8rem;border-radius:7px;font-size:0.82rem;font-weight:500;cursor:pointer;background:var(--color-surface2);color:var(--color-body);border:1px solid var(--color-border);">Remove</button>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:0.35rem;">
+      <label for="maxlen" style="font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--color-muted);">Max Length (0 = no limit)</label>
+      <input id="maxlen" type="number" min="0" max="500" value="0"
+        style="width:80px;background:var(--color-surface2);color:var(--color-body);border:1px solid var(--color-border);border-radius:8px;padding:0.4rem 0.6rem;font-size:0.85rem;outline:none;"
+        onfocus="this.style.borderColor='var(--color-accent)'" onblur="this.style.borderColor='var(--color-border)'" oninput="slugify()" />
+    </div>
+  </div>
+
+  <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:12px;padding:1rem 1.25rem;margin-bottom:0.75rem;">
+    <span style="font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--color-muted);">Result</span>
+    <div style="display:flex;align-items:center;gap:0.75rem;margin-top:0.5rem;">
+      <pre id="output" style="flex:1;font-family:'JetBrains Mono',monospace;font-size:1rem;color:#a8ffb0;margin:0;white-space:pre-wrap;word-break:break-all;"></pre>
+      <button onclick="copySlug()" style="padding:0.4rem 1rem;background:var(--color-surface2);color:var(--color-body);border:1px solid var(--color-border);border-radius:8px;font-size:0.82rem;font-weight:500;cursor:pointer;white-space:nowrap;">📋 Copy</button>
+    </div>
+    <span id="status" style="font-size:0.78rem;font-family:'JetBrains Mono',monospace;color:var(--color-success);"></span>
+  </div>
+
+  <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:12px;padding:1rem 1.25rem;">
+    <span style="font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--color-muted);">Examples — click to try</span>
+    <div style="display:flex;flex-wrap:wrap;gap:0.5rem;margin-top:0.6rem;" id="examples"></div>
+  </div>
+
+</Base>
+
+<script>
+  let separator = '-';
+  let keepNumbers = true;
+
+  const EXAMPLES = [
+    'Hello World!',
+    'My Blog Post Title — 2024',
+    'What is React.js?',
+    '10 Best Tools for Developers',
+    'Café & Résumé',
+    'C++ vs Rust: Which is Faster?',
+    '   Extra   Spaces   Here   ',
+  ];
+
+  function slugify() {
+    let val = (document.getElementById('input') as HTMLTextAreaElement).value;
+    const maxLen = parseInt((document.getElementById('maxlen') as HTMLInputElement).value, 10) || 0;
+
+    // Normalize unicode (remove accents)
+    let slug = val.normalize('NFD').replace(/[̀-ͯ]/g, '');
+    // Lowercase
+    slug = slug.toLowerCase();
+    // Remove numbers if opted out
+    if (!keepNumbers) slug = slug.replace(/[0-9]/g, ' ');
+    // Replace non-alphanumeric (keep numbers if needed) with separator
+    slug = slug.replace(/[^a-z0-9]+/g, separator);
+    // Strip leading/trailing separator
+    slug = slug.replace(new RegExp(`^${separator.replace('-', '\\-')}+|${separator.replace('-', '\\-')}+$`, 'g'), '');
+    // Truncate
+    if (maxLen > 0 && slug.length > maxLen) {
+      slug = slug.slice(0, maxLen).replace(new RegExp(`${separator.replace('-', '\\-')}+$`), '');
+    }
+
+    document.getElementById('output')!.textContent = slug;
+    document.getElementById('status')!.textContent = '';
+  }
+
+  function setSep(s: string) {
+    separator = s;
+    const active = 'padding:0.35rem 0.8rem;border-radius:7px;font-size:0.82rem;font-weight:600;cursor:pointer;background:var(--color-accent);color:#fff;border:none;';
+    const idle   = 'padding:0.35rem 0.8rem;border-radius:7px;font-size:0.82rem;font-weight:500;cursor:pointer;background:var(--color-surface2);color:var(--color-body);border:1px solid var(--color-border);';
+    document.getElementById('sep-hyphen')!.style.cssText = s === '-' ? active : idle;
+    document.getElementById('sep-under')!.style.cssText  = s === '_' ? active : idle;
+    slugify();
+  }
+
+  function setNum(keep: boolean) {
+    keepNumbers = keep;
+    const active = 'padding:0.35rem 0.8rem;border-radius:7px;font-size:0.82rem;font-weight:600;cursor:pointer;background:var(--color-accent);color:#fff;border:none;';
+    const idle   = 'padding:0.35rem 0.8rem;border-radius:7px;font-size:0.82rem;font-weight:500;cursor:pointer;background:var(--color-surface2);color:var(--color-body);border:1px solid var(--color-border);';
+    document.getElementById('num-keep')!.style.cssText   = keep ? active : idle;
+    document.getElementById('num-remove')!.style.cssText = !keep ? active : idle;
+    slugify();
+  }
+
+  function copySlug() {
+    const text = document.getElementById('output')!.textContent;
+    if (!text) return;
+    navigator.clipboard.writeText(text).then(() => {
+      const s = document.getElementById('status')!;
+      s.textContent = '✓ Copied!'; s.style.color = 'var(--color-success)';
+      setTimeout(() => { s.textContent = ''; }, 2000);
+    });
+  }
+
+  function buildExamples() {
+    const container = document.getElementById('examples')!;
+    EXAMPLES.forEach(ex => {
+      const btn = document.createElement('button');
+      btn.textContent = ex;
+      btn.style.cssText = 'padding:0.3rem 0.75rem;background:var(--color-surface2);color:var(--color-body);border:1px solid var(--color-border);border-radius:6px;font-size:0.78rem;cursor:pointer;font-family:inherit;';
+      btn.onmouseenter = () => { btn.style.borderColor = 'var(--color-accent)'; btn.style.color = 'var(--color-heading)'; };
+      btn.onmouseleave = () => { btn.style.borderColor = 'var(--color-border)'; btn.style.color = 'var(--color-body)'; };
+      btn.onclick = () => {
+        (document.getElementById('input') as HTMLTextAreaElement).value = ex;
+        slugify();
+      };
+      container.appendChild(btn);
+    });
+  }
+
+  buildExamples();
+
+  (window as any).slugify    = slugify;
+  (window as any).setSep     = setSep;
+  (window as any).setNum     = setNum;
+  (window as any).copySlug   = copySlug;
+</script>

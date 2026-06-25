@@ -1,0 +1,134 @@
+---
+import Base from '../../layouts/Base.astro';
+---
+<Base title="Text Diff" description="Free online text diff tool. Compare two texts side by side and highlight additions, deletions and unchanged lines. Runs entirely in your browser.">
+
+  <nav style="font-size:0.8rem;color:var(--color-muted);margin-bottom:1.5rem;">
+    <a href="/" style="color:var(--color-muted);text-decoration:none;" onmouseover="this.style.color='var(--color-heading)'" onmouseout="this.style.color='var(--color-muted)'">All Tools</a>
+    <span style="margin:0 0.5rem;">›</span>
+    <span style="color:var(--color-body);">Text Diff</span>
+  </nav>
+
+  <div style="margin-bottom:1.75rem;">
+    <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.5rem;">
+      <span style="font-size:1.4rem;">↔️</span>
+      <h1 style="font-size:1.75rem;font-weight:700;color:var(--color-heading);margin:0;">Text Diff</h1>
+    </div>
+    <p style="color:var(--color-muted);font-size:0.9rem;margin:0;">Compare two blocks of text line by line. Added lines are green, removed lines are red.</p>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem;">
+    <div style="display:flex;flex-direction:column;gap:0.4rem;">
+      <span style="font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--color-muted);">Original</span>
+      <textarea id="original" placeholder="Paste original text here..." spellcheck="false"
+        style="font-family:'JetBrains Mono',monospace;font-size:0.82rem;line-height:1.6;background:var(--color-surface);color:var(--color-body);border:1px solid var(--color-border);border-radius:12px;padding:1rem;resize:vertical;outline:none;min-height:260px;transition:border-color 0.15s;"
+        onfocus="this.style.borderColor='var(--color-accent)'" onblur="this.style.borderColor='var(--color-border)'"></textarea>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:0.4rem;">
+      <span style="font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--color-muted);">Modified</span>
+      <textarea id="modified" placeholder="Paste modified text here..." spellcheck="false"
+        style="font-family:'JetBrains Mono',monospace;font-size:0.82rem;line-height:1.6;background:var(--color-surface);color:var(--color-body);border:1px solid var(--color-border);border-radius:12px;padding:1rem;resize:vertical;outline:none;min-height:260px;transition:border-color 0.15s;"
+        onfocus="this.style.borderColor='var(--color-accent)'" onblur="this.style.borderColor='var(--color-border)'"></textarea>
+    </div>
+  </div>
+
+  <div style="display:flex;gap:0.5rem;align-items:center;margin-bottom:1rem;">
+    <button onclick="compare()" style="padding:0.45rem 1.2rem;background:var(--color-accent);color:#fff;border:none;border-radius:8px;font-size:0.85rem;font-weight:600;cursor:pointer;">Compare</button>
+    <button onclick="clearAll()" style="padding:0.45rem 1rem;background:var(--color-surface2);color:var(--color-muted);border:1px solid var(--color-border);border-radius:8px;font-size:0.82rem;font-weight:500;cursor:pointer;">Clear</button>
+  </div>
+
+  <div id="stats" style="display:none;gap:1rem;margin-bottom:0.75rem;font-size:0.82rem;font-family:'JetBrains Mono',monospace;">
+    <span id="stat-add" style="color:var(--color-success);"></span>
+    <span id="stat-del" style="color:var(--color-danger);"></span>
+    <span id="stat-same" style="color:var(--color-muted);"></span>
+  </div>
+
+  <div id="diff-output" style="font-family:'JetBrains Mono',monospace;font-size:0.82rem;line-height:1.6;background:var(--color-surface);border:1px solid var(--color-border);border-radius:12px;overflow:hidden;display:none;"></div>
+
+</Base>
+
+<script>
+  // Myers diff algorithm (simplified LCS-based line diff)
+  function lcs(a: string[], b: string[]): number[][] {
+    const m = a.length, n = b.length;
+    const dp: number[][] = Array.from({ length: m + 1 }, () => new Array(n + 1).fill(0));
+    for (let i = 1; i <= m; i++) {
+      for (let j = 1; j <= n; j++) {
+        dp[i][j] = a[i - 1] === b[j - 1] ? dp[i - 1][j - 1] + 1 : Math.max(dp[i - 1][j], dp[i][j - 1]);
+      }
+    }
+    return dp;
+  }
+
+  type DiffOp = { type: 'equal' | 'insert' | 'delete'; line: string };
+
+  function diff(a: string[], b: string[]): DiffOp[] {
+    const dp = lcs(a, b);
+    const result: DiffOp[] = [];
+    let i = a.length, j = b.length;
+    while (i > 0 || j > 0) {
+      if (i > 0 && j > 0 && a[i - 1] === b[j - 1]) {
+        result.push({ type: 'equal', line: a[i - 1] });
+        i--; j--;
+      } else if (j > 0 && (i === 0 || dp[i][j - 1] >= dp[i - 1][j])) {
+        result.push({ type: 'insert', line: b[j - 1] });
+        j--;
+      } else {
+        result.push({ type: 'delete', line: a[i - 1] });
+        i--;
+      }
+    }
+    return result.reverse();
+  }
+
+  function compare() {
+    const origVal = (document.getElementById('original') as HTMLTextAreaElement).value;
+    const modVal  = (document.getElementById('modified') as HTMLTextAreaElement).value;
+
+    const aLines = origVal.split('\n');
+    const bLines = modVal.split('\n');
+    const ops = diff(aLines, bLines);
+
+    let added = 0, removed = 0, same = 0;
+    const container = document.getElementById('diff-output')!;
+    container.innerHTML = '';
+
+    for (const op of ops) {
+      const row = document.createElement('div');
+      const escaped = op.line.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      if (op.type === 'insert') {
+        row.style.cssText = 'display:grid;grid-template-columns:1.5rem 1fr;background:rgba(34,197,94,0.08);border-left:3px solid var(--color-success);padding:0.1rem 0.75rem 0.1rem 0.5rem;';
+        row.innerHTML = `<span style="color:var(--color-success);user-select:none;">+</span><span style="color:var(--color-success);">${escaped || '&nbsp;'}</span>`;
+        added++;
+      } else if (op.type === 'delete') {
+        row.style.cssText = 'display:grid;grid-template-columns:1.5rem 1fr;background:rgba(239,68,68,0.08);border-left:3px solid var(--color-danger);padding:0.1rem 0.75rem 0.1rem 0.5rem;';
+        row.innerHTML = `<span style="color:var(--color-danger);user-select:none;">−</span><span style="color:var(--color-danger);">${escaped || '&nbsp;'}</span>`;
+        removed++;
+      } else {
+        row.style.cssText = 'display:grid;grid-template-columns:1.5rem 1fr;border-left:3px solid transparent;padding:0.1rem 0.75rem 0.1rem 0.5rem;';
+        row.innerHTML = `<span style="color:var(--color-muted);user-select:none;"> </span><span style="color:var(--color-body);">${escaped || '&nbsp;'}</span>`;
+        same++;
+      }
+      container.appendChild(row);
+    }
+
+    container.style.display = 'block';
+
+    const statsEl = document.getElementById('stats')!;
+    statsEl.style.display = 'flex';
+    document.getElementById('stat-add')!.textContent  = `+${added} added`;
+    document.getElementById('stat-del')!.textContent  = `−${removed} removed`;
+    document.getElementById('stat-same')!.textContent = `${same} unchanged`;
+  }
+
+  function clearAll() {
+    (document.getElementById('original') as HTMLTextAreaElement).value = '';
+    (document.getElementById('modified') as HTMLTextAreaElement).value = '';
+    document.getElementById('diff-output')!.innerHTML = '';
+    document.getElementById('diff-output')!.style.display = 'none';
+    document.getElementById('stats')!.style.display = 'none';
+  }
+
+  (window as any).compare  = compare;
+  (window as any).clearAll = clearAll;
+</script>

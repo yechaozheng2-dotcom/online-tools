@@ -1,0 +1,156 @@
+---
+import Base from '../../layouts/Base.astro';
+---
+<Base title="Chmod Calculator" description="Free online chmod calculator. Build Linux/Unix file permission numbers and symbolic notation by clicking checkboxes, or enter a numeric mode to see what permissions it grants.">
+
+  <nav style="font-size:0.8rem;color:var(--color-muted);margin-bottom:1.5rem;">
+    <a href="/" style="color:var(--color-muted);text-decoration:none;" onmouseover="this.style.color='var(--color-heading)'" onmouseout="this.style.color='var(--color-muted)'">All Tools</a>
+    <span style="margin:0 0.5rem;">›</span>
+    <span style="color:var(--color-body);">Chmod Calculator</span>
+  </nav>
+
+  <div style="margin-bottom:1.75rem;">
+    <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.5rem;">
+      <span style="font-size:1.5rem;">🔐</span>
+      <h1 style="font-size:1.75rem;font-weight:700;color:var(--color-heading);margin:0;">Chmod Calculator</h1>
+    </div>
+    <p style="color:var(--color-muted);font-size:0.9rem;margin:0;">Click checkboxes to build permissions, or enter a numeric octal value to decode it.</p>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem;">
+    <!-- Left: Checkboxes -->
+    <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:12px;padding:1.25rem;">
+      <div style="font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--color-muted);margin-bottom:1rem;">Permissions</div>
+      {(['owner','group','other'] as const).map((role) => (
+        <div style="margin-bottom:1rem;">
+          <div style="font-size:0.85rem;font-weight:600;color:var(--color-heading);margin-bottom:0.5rem;text-transform:capitalize;">{role.charAt(0).toUpperCase() + role.slice(1)}</div>
+          <div style="display:flex;gap:1rem;">
+            {(['read','write','execute'] as const).map((perm) => (
+              <label style="display:flex;align-items:center;gap:0.4rem;cursor:pointer;font-size:0.85rem;color:var(--color-body);">
+                <input type="checkbox" id={`cb-${role}-${perm}`} onchange="fromCheckboxes()"
+                  style="width:16px;height:16px;accent-color:var(--color-accent);cursor:pointer;" />
+                {perm.charAt(0).toUpperCase() + perm.slice(1)}
+              </label>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+
+    <!-- Right: Output -->
+    <div style="display:flex;flex-direction:column;gap:0.75rem;">
+      <!-- Numeric input -->
+      <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:12px;padding:1.25rem;">
+        <label style="font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--color-muted);display:block;margin-bottom:0.5rem;">Numeric (Octal)</label>
+        <input id="numeric-input" type="text" maxlength="3" placeholder="755"
+          style="width:100%;font-family:'JetBrains Mono',monospace;font-size:1.5rem;font-weight:700;background:var(--color-surface2);color:#a8ffb0;border:1px solid var(--color-border);border-radius:8px;padding:0.5rem 0.75rem;outline:none;box-sizing:border-box;transition:border-color 0.15s;"
+          onfocus="this.style.borderColor='var(--color-accent)'" onblur="this.style.borderColor='var(--color-border)'" oninput="fromNumeric()" />
+      </div>
+
+      <!-- Symbolic -->
+      <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:12px;padding:1.25rem;">
+        <div style="font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--color-muted);margin-bottom:0.5rem;">Symbolic Notation</div>
+        <div id="symbolic" style="font-family:'JetBrains Mono',monospace;font-size:1.5rem;font-weight:700;color:#a8ffb0;letter-spacing:0.1em;">---------</div>
+      </div>
+
+      <!-- Command -->
+      <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:12px;padding:1.25rem;">
+        <div style="font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--color-muted);margin-bottom:0.5rem;">Command</div>
+        <div id="command" style="font-family:'JetBrains Mono',monospace;font-size:0.9rem;color:var(--color-body);margin-bottom:0.75rem;">chmod 000 filename</div>
+        <button onclick="copyCommand()" style="padding:0.4rem 1rem;background:var(--color-surface2);color:var(--color-body);border:1px solid var(--color-border);border-radius:8px;font-size:0.82rem;font-weight:500;cursor:pointer;">📋 Copy Command</button>
+        <span id="copy-status" style="font-size:0.82rem;color:var(--color-success);margin-left:0.75rem;font-family:'JetBrains Mono',monospace;"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Permission meaning -->
+  <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:12px;padding:1.25rem;">
+    <div style="font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--color-muted);margin-bottom:0.75rem;">Permission Bits</div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:0.75rem;font-size:0.82rem;">
+      {[
+        {bit:'r',val:'4',desc:'Read — view file contents or list directory'},
+        {bit:'w',val:'2',desc:'Write — modify file or create/delete in directory'},
+        {bit:'x',val:'1',desc:'Execute — run file as a program or enter directory'},
+      ].map(row => (
+        <div style="background:var(--color-surface2);border:1px solid var(--color-border);border-radius:8px;padding:0.75rem;">
+          <span style="font-family:'JetBrains Mono',monospace;color:#a8ffb0;font-weight:700;font-size:1rem;">{row.bit}</span>
+          <span style="font-family:'JetBrains Mono',monospace;color:var(--color-accent);margin-left:0.4rem;">= {row.val}</span>
+          <div style="color:var(--color-muted);margin-top:0.3rem;">{row.desc}</div>
+        </div>
+      ))}
+    </div>
+  </div>
+</Base>
+
+<script>
+  const ROLES = ['owner', 'group', 'other'] as const;
+  const PERMS = ['read', 'write', 'execute'] as const;
+  const PERM_VALS = { read: 4, write: 2, execute: 1 };
+  const PERM_CHARS = { read: 'r', write: 'w', execute: 'x' };
+
+  function getCheckboxState(): number[] {
+    return ROLES.map(role =>
+      PERMS.reduce((acc, perm) => {
+        const cb = document.getElementById(`cb-${role}-${perm}`) as HTMLInputElement;
+        return acc + (cb.checked ? PERM_VALS[perm] : 0);
+      }, 0)
+    );
+  }
+
+  function setCheckboxState(digits: number[]) {
+    ROLES.forEach((role, i) => {
+      const val = digits[i] || 0;
+      PERMS.forEach(perm => {
+        const cb = document.getElementById(`cb-${role}-${perm}`) as HTMLInputElement;
+        cb.checked = (val & PERM_VALS[perm]) !== 0;
+      });
+    });
+  }
+
+  function digitsToSymbolic(digits: number[]): string {
+    return digits.map(val =>
+      PERMS.map(perm => (val & PERM_VALS[perm]) ? PERM_CHARS[perm] : '-').join('')
+    ).join('');
+  }
+
+  function updateOutput(digits: number[]) {
+    const numeric = digits.join('');
+    const symbolic = digitsToSymbolic(digits);
+    (document.getElementById('numeric-input') as HTMLInputElement).value = numeric;
+    document.getElementById('symbolic')!.textContent = symbolic;
+    document.getElementById('command')!.textContent = `chmod ${numeric} filename`;
+  }
+
+  function fromCheckboxes() {
+    const digits = getCheckboxState();
+    updateOutput(digits);
+  }
+
+  function fromNumeric() {
+    const raw = (document.getElementById('numeric-input') as HTMLInputElement).value.trim();
+    if (!/^[0-7]{1,3}$/.test(raw)) return;
+    const padded = raw.padStart(3, '0');
+    const digits = padded.split('').map(Number);
+    setCheckboxState(digits);
+    const symbolic = digitsToSymbolic(digits);
+    document.getElementById('symbolic')!.textContent = symbolic;
+    document.getElementById('command')!.textContent = `chmod ${raw} filename`;
+  }
+
+  function copyCommand() {
+    const cmd = document.getElementById('command')!.textContent || '';
+    navigator.clipboard.writeText(cmd).then(() => {
+      const s = document.getElementById('copy-status')!;
+      s.textContent = '✓ Copied!';
+      setTimeout(() => { s.textContent = ''; }, 2000);
+    });
+  }
+
+  (window as any).fromCheckboxes = fromCheckboxes;
+  (window as any).fromNumeric = fromNumeric;
+  (window as any).copyCommand = copyCommand;
+
+  // Init with 755
+  setCheckboxState([7, 5, 5]);
+  updateOutput([7, 5, 5]);
+</script>

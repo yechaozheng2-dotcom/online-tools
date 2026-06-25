@@ -1,0 +1,137 @@
+---
+import Base from '../../layouts/Base.astro';
+---
+<Base title="CSS Box Shadow Generator" description="Free CSS box shadow generator. Use sliders to control shadow properties and instantly copy the generated CSS code.">
+
+  <nav style="font-size:0.8rem;color:var(--color-muted);margin-bottom:1.5rem;">
+    <a href="/" style="color:var(--color-muted);text-decoration:none;" onmouseover="this.style.color='var(--color-heading)'" onmouseout="this.style.color='var(--color-muted)'">All Tools</a>
+    <span style="margin:0 0.5rem;">›</span>
+    <span style="color:var(--color-body);">CSS Box Shadow Generator</span>
+  </nav>
+
+  <div style="margin-bottom:1.75rem;">
+    <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.5rem;">
+      <span style="font-size:1.5rem;">🌑</span>
+      <h1 style="font-size:1.75rem;font-weight:700;color:var(--color-heading);margin:0;">CSS Box Shadow Generator</h1>
+    </div>
+    <p style="color:var(--color-muted);font-size:0.9rem;margin:0;">Adjust sliders to build the perfect box shadow, then copy the CSS.</p>
+  </div>
+
+  <div style="display:grid;grid-template-columns:320px 1fr;gap:1.5rem;align-items:start;">
+
+    <!-- Left: controls -->
+    <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:14px;padding:1.5rem;display:flex;flex-direction:column;gap:1.1rem;">
+
+      {[
+        {id:'h-offset',  label:'Horizontal Offset', min:'-50', max:'50',  val:'10'},
+        {id:'v-offset',  label:'Vertical Offset',   min:'-50', max:'50',  val:'10'},
+        {id:'blur',      label:'Blur Radius',        min:'0',   max:'100', val:'20'},
+        {id:'spread',    label:'Spread Radius',      min:'-50', max:'50',  val:'0'},
+        {id:'opacity',   label:'Opacity',            min:'0',   max:'100', val:'60'},
+      ].map(s => (
+        <div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:0.35rem;">
+            <label style="font-size:0.78rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--color-muted);">{s.label}</label>
+            <span id={`${s.id}-val`} style="font-family:'JetBrains Mono',monospace;font-size:0.78rem;color:var(--color-body);">{s.val}</span>
+          </div>
+          <input type="range" id={s.id} min={s.min} max={s.max} value={s.val} oninput="render()"
+            style="width:100%;accent-color:var(--color-accent);cursor:pointer;" />
+        </div>
+      ))}
+
+      <!-- Color -->
+      <div>
+        <label style="display:block;font-size:0.78rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--color-muted);margin-bottom:0.35rem;">Shadow Color</label>
+        <div style="display:flex;align-items:center;gap:0.75rem;">
+          <input type="color" id="shadow-color" value="#000000" oninput="render()"
+            style="width:48px;height:36px;border:none;border-radius:8px;cursor:pointer;background:none;padding:0;" />
+          <span id="shadow-color-val" style="font-family:'JetBrains Mono',monospace;font-size:0.85rem;color:var(--color-body);">#000000</span>
+        </div>
+      </div>
+
+      <!-- Inset -->
+      <div style="display:flex;align-items:center;gap:0.75rem;">
+        <input type="checkbox" id="inset" onchange="render()"
+          style="width:18px;height:18px;accent-color:var(--color-accent);cursor:pointer;" />
+        <label for="inset" style="font-size:0.85rem;color:var(--color-body);cursor:pointer;">Inset</label>
+      </div>
+
+    </div>
+
+    <!-- Right: preview + output -->
+    <div style="display:flex;flex-direction:column;gap:1.25rem;">
+
+      <!-- Preview -->
+      <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:14px;padding:2rem;display:flex;align-items:center;justify-content:center;min-height:200px;">
+        <div id="preview-box"
+          style="width:160px;height:120px;background:#ffffff;border-radius:12px;box-shadow:10px 10px 20px 0px rgba(0,0,0,0.6);transition:box-shadow 0.1s;">
+        </div>
+      </div>
+
+      <!-- CSS output -->
+      <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:14px;padding:1.25rem;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.75rem;">
+          <div style="font-size:0.78rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--color-muted);">Generated CSS</div>
+          <button id="copy-btn" onclick="copyCss()"
+            style="padding:0.35rem 0.75rem;background:var(--color-surface2);color:var(--color-muted);border:1px solid var(--color-border);border-radius:6px;font-size:0.78rem;cursor:pointer;"
+            onmouseover="this.style.borderColor='var(--color-accent)'" onmouseout="this.style.borderColor='var(--color-border)'">Copy</button>
+        </div>
+        <pre id="css-output" style="font-family:'JetBrains Mono',monospace;font-size:0.88rem;color:#a8ffb0;margin:0;white-space:pre-wrap;word-break:break-all;"></pre>
+        <div id="copy-status" style="font-size:0.8rem;color:var(--color-success);min-height:1rem;margin-top:0.5rem;font-family:'JetBrains Mono',monospace;"></div>
+      </div>
+
+    </div>
+  </div>
+
+</Base>
+
+<script>
+  function hexToRgba(hex: string, opacity: number): string {
+    const r = parseInt(hex.slice(1,3),16);
+    const g = parseInt(hex.slice(3,5),16);
+    const b = parseInt(hex.slice(5,7),16);
+    return `rgba(${r},${g},${b},${(opacity/100).toFixed(2)})`;
+  }
+
+  function slider(id: string): number {
+    return parseFloat((document.getElementById(id) as HTMLInputElement).value);
+  }
+
+  function render() {
+    const h = slider('h-offset');
+    const v = slider('v-offset');
+    const blur = slider('blur');
+    const spread = slider('spread');
+    const opacity = slider('opacity');
+    const color = (document.getElementById('shadow-color') as HTMLInputElement).value;
+    const inset = (document.getElementById('inset') as HTMLInputElement).checked;
+
+    document.getElementById('h-offset-val')!.textContent = h.toString();
+    document.getElementById('v-offset-val')!.textContent = v.toString();
+    document.getElementById('blur-val')!.textContent = blur.toString();
+    document.getElementById('spread-val')!.textContent = spread.toString();
+    document.getElementById('opacity-val')!.textContent = opacity.toString();
+    document.getElementById('shadow-color-val')!.textContent = color.toUpperCase();
+
+    const rgba = hexToRgba(color, opacity);
+    const shadow = `${inset ? 'inset ' : ''}${h}px ${v}px ${blur}px ${spread}px ${rgba}`;
+
+    (document.getElementById('preview-box') as HTMLElement).style.boxShadow = shadow;
+
+    const css = `box-shadow: ${shadow};`;
+    document.getElementById('css-output')!.textContent = css;
+  }
+
+  function copyCss() {
+    const text = document.getElementById('css-output')!.textContent || '';
+    navigator.clipboard.writeText(text).then(() => {
+      const s = document.getElementById('copy-status')!;
+      s.textContent = '✓ Copied!';
+      setTimeout(() => s.textContent = '', 2000);
+    });
+  }
+
+  (window as any).render = render;
+  (window as any).copyCss = copyCss;
+  render();
+</script>

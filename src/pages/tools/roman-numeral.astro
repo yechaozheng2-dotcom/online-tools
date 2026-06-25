@@ -1,0 +1,113 @@
+---
+import Base from '../../layouts/Base.astro';
+---
+<Base title="Roman Numeral Converter" description="Free online Roman numeral converter. Convert between Arabic numbers and Roman numerals instantly with real-time preview.">
+
+  <nav style="font-size:0.8rem;color:var(--color-muted);margin-bottom:1.5rem;">
+    <a href="/" style="color:var(--color-muted);text-decoration:none;" onmouseover="this.style.color='var(--color-heading)'" onmouseout="this.style.color='var(--color-muted)'">All Tools</a>
+    <span style="margin:0 0.5rem;">›</span>
+    <span style="color:var(--color-body);">Roman Numeral Converter</span>
+  </nav>
+
+  <div style="margin-bottom:1.75rem;">
+    <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.5rem;">
+      <span style="font-size:1.5rem;">🏛️</span>
+      <h1 style="font-size:1.75rem;font-weight:700;color:var(--color-heading);margin:0;">Roman Numeral Converter</h1>
+    </div>
+    <p style="color:var(--color-muted);font-size:0.9rem;margin:0;">Convert between Arabic numbers (1–3999) and Roman numerals in real time.</p>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;margin-bottom:2rem;">
+
+    <!-- Number → Roman -->
+    <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:14px;padding:1.5rem;display:flex;flex-direction:column;gap:1rem;">
+      <div style="font-size:0.78rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--color-accent);">Number → Roman</div>
+      <input id="num-input" type="number" min="1" max="3999" placeholder="Enter 1–3999" oninput="numToRoman()"
+        style="font-family:'JetBrains Mono',monospace;font-size:1rem;background:var(--color-surface2);color:var(--color-body);border:1px solid var(--color-border);border-radius:8px;padding:0.6rem 0.75rem;outline:none;transition:border-color 0.15s;"
+        onfocus="this.style.borderColor='var(--color-accent)'" onblur="this.style.borderColor='var(--color-border)'" />
+      <div style="border-top:1px solid var(--color-border);padding-top:0.75rem;">
+        <div style="font-size:0.8rem;color:var(--color-muted);margin-bottom:0.35rem;">Result</div>
+        <div id="roman-out" style="font-family:'JetBrains Mono',monospace;font-size:1.6rem;color:#a8ffb0;font-weight:700;min-height:2rem;">—</div>
+      </div>
+    </div>
+
+    <!-- Roman → Number -->
+    <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:14px;padding:1.5rem;display:flex;flex-direction:column;gap:1rem;">
+      <div style="font-size:0.78rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--color-accent);">Roman → Number</div>
+      <input id="roman-input" type="text" placeholder="Enter Roman numeral" oninput="romanToNum()"
+        style="font-family:'JetBrains Mono',monospace;font-size:1rem;background:var(--color-surface2);color:var(--color-body);border:1px solid var(--color-border);border-radius:8px;padding:0.6rem 0.75rem;outline:none;transition:border-color 0.15s;text-transform:uppercase;"
+        onfocus="this.style.borderColor='var(--color-accent)'" onblur="this.style.borderColor='var(--color-border)'" />
+      <div style="border-top:1px solid var(--color-border);padding-top:0.75rem;">
+        <div style="font-size:0.8rem;color:var(--color-muted);margin-bottom:0.35rem;">Result</div>
+        <div id="num-out" style="font-family:'JetBrains Mono',monospace;font-size:1.6rem;color:#a8ffb0;font-weight:700;min-height:2rem;">—</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Reference Table 1-20 -->
+  <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:14px;padding:1.5rem;">
+    <div style="font-size:0.85rem;font-weight:700;color:var(--color-heading);margin-bottom:1rem;">Quick Reference (1–20)</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:0.5rem;">
+      {Array.from({length:20},(_,i)=>i+1).map(n => (
+        <div style="background:var(--color-surface2);border:1px solid var(--color-border);border-radius:8px;padding:0.5rem 0.75rem;text-align:center;">
+          <span style="font-size:0.9rem;color:var(--color-muted);">{n}</span>
+          <span style="display:block;font-family:'JetBrains Mono',monospace;font-size:0.85rem;color:#a8ffb0;" id={`ref-${n}`}></span>
+        </div>
+      ))}
+    </div>
+  </div>
+
+</Base>
+
+<script>
+  const ROMAN_MAP: [number, string][] = [
+    [1000,'M'],[900,'CM'],[500,'D'],[400,'CD'],
+    [100,'C'],[90,'XC'],[50,'L'],[40,'XL'],
+    [10,'X'],[9,'IX'],[5,'V'],[4,'IV'],[1,'I'],
+  ];
+
+  function toRoman(n: number): string {
+    if (n < 1 || n > 3999 || !Number.isInteger(n)) return 'Invalid';
+    let result = '';
+    for (const [val, sym] of ROMAN_MAP) {
+      while (n >= val) { result += sym; n -= val; }
+    }
+    return result;
+  }
+
+  function fromRoman(s: string): number | null {
+    const val: Record<string,number> = {I:1,V:5,X:10,L:50,C:100,D:500,M:1000};
+    s = s.toUpperCase();
+    if (!/^[IVXLCDM]+$/.test(s)) return null;
+    let result = 0;
+    for (let i = 0; i < s.length; i++) {
+      const cur = val[s[i]];
+      const next = val[s[i+1]];
+      if (next && cur < next) { result += next - cur; i++; }
+      else result += cur;
+    }
+    return result;
+  }
+
+  function numToRoman() {
+    const v = parseInt((document.getElementById('num-input') as HTMLInputElement).value);
+    document.getElementById('roman-out')!.textContent = isNaN(v) ? '—' : toRoman(v);
+  }
+
+  function romanToNum() {
+    const s = (document.getElementById('roman-input') as HTMLInputElement).value.trim();
+    if (!s) { document.getElementById('num-out')!.textContent = '—'; return; }
+    const n = fromRoman(s);
+    document.getElementById('num-out')!.textContent = n === null ? 'Invalid' : n.toString();
+  }
+
+  // Populate reference table
+  for (let i = 1; i <= 20; i++) {
+    const el = document.getElementById(`ref-${i}`);
+    if (el) el.textContent = toRoman(i);
+  }
+
+  (window as any).numToRoman = numToRoman;
+  (window as any).romanToNum = romanToNum;
+</script>

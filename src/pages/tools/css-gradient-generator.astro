@@ -1,0 +1,199 @@
+---
+import Base from '../../layouts/Base.astro';
+---
+<Base title="CSS Gradient Generator" description="Free CSS gradient generator. Create linear and radial gradients with custom color stops and copy the CSS background code instantly.">
+
+  <nav style="font-size:0.8rem;color:var(--color-muted);margin-bottom:1.5rem;">
+    <a href="/" style="color:var(--color-muted);text-decoration:none;" onmouseover="this.style.color='var(--color-heading)'" onmouseout="this.style.color='var(--color-muted)'">All Tools</a>
+    <span style="margin:0 0.5rem;">›</span>
+    <span style="color:var(--color-body);">CSS Gradient Generator</span>
+  </nav>
+
+  <div style="margin-bottom:1.75rem;">
+    <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.5rem;">
+      <span style="font-size:1.5rem;">🌈</span>
+      <h1 style="font-size:1.75rem;font-weight:700;color:var(--color-heading);margin:0;">CSS Gradient Generator</h1>
+    </div>
+    <p style="color:var(--color-muted);font-size:0.9rem;margin:0;">Build linear or radial gradients with custom color stops and copy the CSS.</p>
+  </div>
+
+  <div style="display:grid;grid-template-columns:340px 1fr;gap:1.5rem;align-items:start;">
+
+    <!-- Left: controls -->
+    <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:14px;padding:1.5rem;display:flex;flex-direction:column;gap:1.25rem;">
+
+      <!-- Type -->
+      <div>
+        <label style="font-size:0.78rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--color-muted);display:block;margin-bottom:0.5rem;">Type</label>
+        <div style="display:flex;gap:0.5rem;">
+          <button id="btn-linear" onclick="setType('linear')"
+            style="flex:1;padding:0.45rem;border-radius:8px;border:1px solid var(--color-accent);background:var(--color-accent);color:#fff;font-size:0.85rem;cursor:pointer;">Linear</button>
+          <button id="btn-radial" onclick="setType('radial')"
+            style="flex:1;padding:0.45rem;border-radius:8px;border:1px solid var(--color-border);background:var(--color-surface2);color:var(--color-muted);font-size:0.85rem;cursor:pointer;">Radial</button>
+        </div>
+      </div>
+
+      <!-- Angle (linear only) -->
+      <div id="angle-control">
+        <div style="display:flex;justify-content:space-between;margin-bottom:0.35rem;">
+          <label style="font-size:0.78rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--color-muted);">Angle</label>
+          <span id="angle-val" style="font-family:'JetBrains Mono',monospace;font-size:0.78rem;color:var(--color-body);">135°</span>
+        </div>
+        <input type="range" id="angle" min="0" max="360" value="135" oninput="render()"
+          style="width:100%;accent-color:var(--color-accent);cursor:pointer;" />
+      </div>
+
+      <!-- Color stops -->
+      <div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.65rem;">
+          <label style="font-size:0.78rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--color-muted);">Color Stops</label>
+          <button onclick="addStop()"
+            style="padding:0.25rem 0.65rem;background:var(--color-surface2);color:var(--color-muted);border:1px solid var(--color-border);border-radius:6px;font-size:0.78rem;cursor:pointer;"
+            onmouseover="this.style.borderColor='var(--color-accent)'" onmouseout="this.style.borderColor='var(--color-border)'">+ Add</button>
+        </div>
+        <div id="stops-container" style="display:flex;flex-direction:column;gap:0.6rem;"></div>
+      </div>
+
+    </div>
+
+    <!-- Right: preview + output -->
+    <div style="display:flex;flex-direction:column;gap:1.25rem;">
+
+      <!-- Preview -->
+      <div id="preview-gradient"
+        style="border-radius:14px;height:200px;border:1px solid var(--color-border);transition:background 0.1s;">
+      </div>
+
+      <!-- CSS output -->
+      <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:14px;padding:1.25rem;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.75rem;">
+          <div style="font-size:0.78rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--color-muted);">Generated CSS</div>
+          <button onclick="copyCss()"
+            style="padding:0.35rem 0.75rem;background:var(--color-surface2);color:var(--color-muted);border:1px solid var(--color-border);border-radius:6px;font-size:0.78rem;cursor:pointer;"
+            onmouseover="this.style.borderColor='var(--color-accent)'" onmouseout="this.style.borderColor='var(--color-border)'">Copy</button>
+        </div>
+        <pre id="css-output" style="font-family:'JetBrains Mono',monospace;font-size:0.88rem;color:#a8ffb0;margin:0;white-space:pre-wrap;word-break:break-all;"></pre>
+        <div id="copy-status" style="font-size:0.8rem;color:var(--color-success);min-height:1rem;margin-top:0.5rem;font-family:'JetBrains Mono',monospace;"></div>
+      </div>
+
+    </div>
+  </div>
+
+</Base>
+
+<script>
+  type Stop = { color: string; position: number };
+  let stops: Stop[] = [
+    { color: '#6366F1', position: 0 },
+    { color: '#EC4899', position: 100 },
+  ];
+  let gradType: 'linear' | 'radial' = 'linear';
+
+  function setType(t: 'linear' | 'radial') {
+    gradType = t;
+    const angleCtrl = document.getElementById('angle-control')!;
+    angleCtrl.style.display = t === 'linear' ? 'block' : 'none';
+    const bl = document.getElementById('btn-linear')!;
+    const br = document.getElementById('btn-radial')!;
+    if (t === 'linear') {
+      bl.style.background = 'var(--color-accent)'; bl.style.borderColor = 'var(--color-accent)'; bl.style.color = '#fff';
+      br.style.background = 'var(--color-surface2)'; br.style.borderColor = 'var(--color-border)'; br.style.color = 'var(--color-muted)';
+    } else {
+      br.style.background = 'var(--color-accent)'; br.style.borderColor = 'var(--color-accent)'; br.style.color = '#fff';
+      bl.style.background = 'var(--color-surface2)'; bl.style.borderColor = 'var(--color-border)'; bl.style.color = 'var(--color-muted)';
+    }
+    render();
+  }
+
+  function buildStopsUI() {
+    const container = document.getElementById('stops-container')!;
+    container.innerHTML = '';
+    stops.forEach((stop, i) => {
+      const row = document.createElement('div');
+      row.style.cssText = 'display:flex;align-items:center;gap:0.6rem;';
+
+      const colorInput = document.createElement('input');
+      colorInput.type = 'color';
+      colorInput.value = stop.color;
+      colorInput.style.cssText = 'width:36px;height:36px;border:none;border-radius:6px;cursor:pointer;background:none;padding:0;flex-shrink:0;';
+      colorInput.addEventListener('input', () => { stops[i].color = colorInput.value; render(); });
+
+      const hexLabel = document.createElement('span');
+      hexLabel.style.cssText = 'font-family:"JetBrains Mono",monospace;font-size:0.78rem;color:var(--color-muted);width:60px;';
+      hexLabel.textContent = stop.color.toUpperCase();
+      colorInput.addEventListener('input', () => { hexLabel.textContent = colorInput.value.toUpperCase(); });
+
+      const posInput = document.createElement('input');
+      posInput.type = 'number';
+      posInput.min = '0';
+      posInput.max = '100';
+      posInput.value = stop.position.toString();
+      posInput.style.cssText = 'font-family:"JetBrains Mono",monospace;width:58px;background:var(--color-surface2);color:var(--color-body);border:1px solid var(--color-border);border-radius:6px;padding:0.4rem 0.5rem;outline:none;font-size:0.82rem;';
+      posInput.addEventListener('input', () => { stops[i].position = parseInt(posInput.value) || 0; render(); });
+
+      const pct = document.createElement('span');
+      pct.textContent = '%';
+      pct.style.cssText = 'font-size:0.82rem;color:var(--color-muted);';
+
+      const delBtn = document.createElement('button');
+      delBtn.textContent = '×';
+      delBtn.style.cssText = 'margin-left:auto;padding:0.2rem 0.5rem;background:var(--color-surface2);color:var(--color-danger);border:1px solid var(--color-border);border-radius:6px;font-size:0.9rem;cursor:pointer;';
+      delBtn.disabled = stops.length <= 2;
+      delBtn.style.opacity = stops.length <= 2 ? '0.3' : '1';
+      delBtn.addEventListener('click', () => {
+        if (stops.length > 2) { stops.splice(i, 1); buildStopsUI(); render(); }
+      });
+
+      row.appendChild(colorInput);
+      row.appendChild(hexLabel);
+      row.appendChild(posInput);
+      row.appendChild(pct);
+      row.appendChild(delBtn);
+      container.appendChild(row);
+    });
+  }
+
+  function addStop() {
+    stops.push({ color: '#ffffff', position: 50 });
+    buildStopsUI();
+    render();
+  }
+
+  function render() {
+    const angle = parseInt((document.getElementById('angle') as HTMLInputElement).value);
+    document.getElementById('angle-val')!.textContent = angle + '°';
+
+    const sorted = [...stops].sort((a,b) => a.position - b.position);
+    const stopStr = sorted.map(s => `${s.color} ${s.position}%`).join(', ');
+
+    let gradStr: string;
+    if (gradType === 'linear') {
+      gradStr = `linear-gradient(${angle}deg, ${stopStr})`;
+    } else {
+      gradStr = `radial-gradient(circle, ${stopStr})`;
+    }
+
+    const preview = document.getElementById('preview-gradient')!;
+    preview.style.background = gradStr;
+
+    const css = `background: ${gradStr};`;
+    document.getElementById('css-output')!.textContent = css;
+  }
+
+  function copyCss() {
+    const text = document.getElementById('css-output')!.textContent || '';
+    navigator.clipboard.writeText(text).then(() => {
+      const s = document.getElementById('copy-status')!;
+      s.textContent = '✓ Copied!';
+      setTimeout(() => s.textContent = '', 2000);
+    });
+  }
+
+  (window as any).setType = setType;
+  (window as any).addStop = addStop;
+  (window as any).render = render;
+  (window as any).copyCss = copyCss;
+
+  buildStopsUI();
+  render();
+</script>

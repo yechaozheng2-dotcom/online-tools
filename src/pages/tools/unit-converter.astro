@@ -1,0 +1,138 @@
+---
+import Base from '../../layouts/Base.astro';
+---
+<Base title="Unit Converter" description="Free online unit converter. Convert length, weight, temperature and area units instantly in your browser.">
+
+  <nav style="font-size:0.8rem;color:var(--color-muted);margin-bottom:1.5rem;">
+    <a href="/" style="color:var(--color-muted);text-decoration:none;" onmouseover="this.style.color='var(--color-heading)'" onmouseout="this.style.color='var(--color-muted)'">All Tools</a>
+    <span style="margin:0 0.5rem;">›</span>
+    <span style="color:var(--color-body);">Unit Converter</span>
+  </nav>
+
+  <div style="margin-bottom:1.75rem;">
+    <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.5rem;">
+      <span style="font-size:1.5rem;">📐</span>
+      <h1 style="font-size:1.75rem;font-weight:700;color:var(--color-heading);margin:0;">Unit Converter</h1>
+    </div>
+    <p style="color:var(--color-muted);font-size:0.9rem;margin:0;">Convert between length, weight, temperature and area units in real time.</p>
+  </div>
+
+  <!-- Category Tabs -->
+  <div id="tabs" style="display:flex;gap:0.5rem;margin-bottom:1.5rem;flex-wrap:wrap;">
+    {['Length','Weight','Temperature','Area'].map((cat) => (
+      <button
+        data-cat={cat}
+        onclick={`switchCat('${cat}')`}
+        style="padding:0.45rem 1.1rem;border-radius:8px;border:1px solid var(--color-border);background:var(--color-surface);color:var(--color-muted);font-size:0.85rem;cursor:pointer;transition:all 0.15s;"
+      >{cat}</button>
+    ))}
+  </div>
+
+  <!-- Panels -->
+  {['Length','Weight','Temperature','Area'].map((cat) => (
+    <div id={`panel-${cat}`} style="display:none;">
+      <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:14px;padding:1.5rem;">
+        <div id={`inputs-${cat}`} style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:1rem;"></div>
+      </div>
+    </div>
+  ))}
+
+</Base>
+
+<script>
+  type UnitDef = { label: string; toBase: (v: number) => number; fromBase: (v: number) => number };
+
+  const UNITS: Record<string, UnitDef[]> = {
+    Length: [
+      { label: 'mm',   toBase: v => v / 1000,        fromBase: v => v * 1000 },
+      { label: 'cm',   toBase: v => v / 100,          fromBase: v => v * 100 },
+      { label: 'm',    toBase: v => v,                fromBase: v => v },
+      { label: 'km',   toBase: v => v * 1000,         fromBase: v => v / 1000 },
+      { label: 'inch', toBase: v => v * 0.0254,       fromBase: v => v / 0.0254 },
+      { label: 'ft',   toBase: v => v * 0.3048,       fromBase: v => v / 0.3048 },
+      { label: 'yard', toBase: v => v * 0.9144,       fromBase: v => v / 0.9144 },
+      { label: 'mile', toBase: v => v * 1609.344,     fromBase: v => v / 1609.344 },
+    ],
+    Weight: [
+      { label: 'mg',  toBase: v => v / 1e6,   fromBase: v => v * 1e6 },
+      { label: 'g',   toBase: v => v / 1000,  fromBase: v => v * 1000 },
+      { label: 'kg',  toBase: v => v,         fromBase: v => v },
+      { label: 'ton', toBase: v => v * 1000,  fromBase: v => v / 1000 },
+      { label: 'oz',  toBase: v => v * 0.0283495, fromBase: v => v / 0.0283495 },
+      { label: 'lb',  toBase: v => v * 0.453592,  fromBase: v => v / 0.453592 },
+    ],
+    Temperature: [
+      { label: '°C', toBase: v => v,                fromBase: v => v },
+      { label: '°F', toBase: v => (v - 32) * 5/9,  fromBase: v => v * 9/5 + 32 },
+      { label: 'K',  toBase: v => v - 273.15,       fromBase: v => v + 273.15 },
+    ],
+    Area: [
+      { label: 'mm²',     toBase: v => v / 1e6,        fromBase: v => v * 1e6 },
+      { label: 'cm²',     toBase: v => v / 1e4,        fromBase: v => v * 1e4 },
+      { label: 'm²',      toBase: v => v,              fromBase: v => v },
+      { label: 'km²',     toBase: v => v * 1e6,        fromBase: v => v / 1e6 },
+      { label: 'ft²',     toBase: v => v * 0.092903,   fromBase: v => v / 0.092903 },
+      { label: 'acre',    toBase: v => v * 4046.86,    fromBase: v => v / 4046.86 },
+      { label: 'hectare', toBase: v => v * 10000,      fromBase: v => v / 10000 },
+    ],
+  };
+
+  let activeInputId: string | null = null;
+
+  function buildPanel(cat: string) {
+    const container = document.getElementById(`inputs-${cat}`)!;
+    if (container.childElementCount > 0) return;
+    const units = UNITS[cat];
+    units.forEach((u, i) => {
+      const wrapper = document.createElement('div');
+      wrapper.style.cssText = 'display:flex;flex-direction:column;gap:0.35rem;';
+      const label = document.createElement('label');
+      label.textContent = u.label;
+      label.style.cssText = 'font-size:0.78rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--color-muted);';
+      const input = document.createElement('input');
+      input.type = 'number';
+      input.id = `${cat}-${i}`;
+      input.placeholder = '0';
+      input.style.cssText = 'font-family:"JetBrains Mono",monospace;font-size:0.95rem;background:var(--color-surface2);color:#a8ffb0;border:1px solid var(--color-border);border-radius:8px;padding:0.6rem 0.75rem;outline:none;transition:border-color 0.15s;width:100%;box-sizing:border-box;';
+      input.addEventListener('focus', () => { input.style.borderColor = 'var(--color-accent)'; });
+      input.addEventListener('blur', () => { input.style.borderColor = 'var(--color-border)'; });
+      input.addEventListener('input', () => {
+        activeInputId = input.id;
+        convert(cat, i, parseFloat(input.value) || 0);
+      });
+      wrapper.appendChild(label);
+      wrapper.appendChild(input);
+      container.appendChild(wrapper);
+    });
+  }
+
+  function convert(cat: string, fromIdx: number, value: number) {
+    const units = UNITS[cat];
+    const baseVal = units[fromIdx].toBase(value);
+    units.forEach((u, i) => {
+      if (i === fromIdx) return;
+      const el = document.getElementById(`${cat}-${i}`) as HTMLInputElement;
+      if (!el) return;
+      const result = u.fromBase(baseVal);
+      el.value = isNaN(result) ? '' : parseFloat(result.toPrecision(10)).toString();
+    });
+  }
+
+  function switchCat(cat: string) {
+    ['Length','Weight','Temperature','Area'].forEach(c => {
+      const panel = document.getElementById(`panel-${c}`)!;
+      panel.style.display = c === cat ? 'block' : 'none';
+    });
+    document.querySelectorAll('#tabs button').forEach(btn => {
+      const b = btn as HTMLButtonElement;
+      const active = b.dataset.cat === cat;
+      b.style.background = active ? 'var(--color-accent)' : 'var(--color-surface)';
+      b.style.color = active ? '#fff' : 'var(--color-muted)';
+      b.style.borderColor = active ? 'var(--color-accent)' : 'var(--color-border)';
+    });
+    buildPanel(cat);
+  }
+
+  (window as any).switchCat = switchCat;
+  switchCat('Length');
+</script>

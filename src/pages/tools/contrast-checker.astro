@@ -1,0 +1,164 @@
+---
+import Base from '../../layouts/Base.astro';
+---
+<Base title="Contrast Checker (WCAG)" description="Free WCAG contrast checker. Verify color contrast ratios for AA and AAA accessibility compliance with real-time preview.">
+
+  <nav style="font-size:0.8rem;color:var(--color-muted);margin-bottom:1.5rem;">
+    <a href="/" style="color:var(--color-muted);text-decoration:none;" onmouseover="this.style.color='var(--color-heading)'" onmouseout="this.style.color='var(--color-muted)'">All Tools</a>
+    <span style="margin:0 0.5rem;">›</span>
+    <span style="color:var(--color-body);">Contrast Checker</span>
+  </nav>
+
+  <div style="margin-bottom:1.75rem;">
+    <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.5rem;">
+      <span style="font-size:1.5rem;">♿</span>
+      <h1 style="font-size:1.75rem;font-weight:700;color:var(--color-heading);margin:0;">Contrast Checker (WCAG)</h1>
+    </div>
+    <p style="color:var(--color-muted);font-size:0.9rem;margin:0;">Check foreground/background color contrast against WCAG 2.1 AA and AAA standards.</p>
+  </div>
+
+  <div style="display:grid;grid-template-columns:320px 1fr;gap:1.5rem;align-items:start;">
+
+    <!-- Left: color pickers -->
+    <div style="display:flex;flex-direction:column;gap:1rem;">
+
+      <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:14px;padding:1.25rem;display:flex;flex-direction:column;gap:0.75rem;">
+        <label style="font-size:0.78rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--color-muted);">Foreground Color</label>
+        <div style="display:flex;align-items:center;gap:0.75rem;">
+          <input type="color" id="fg-picker" value="#FFFFFF" oninput="onColorChange()"
+            style="width:48px;height:48px;border:none;border-radius:8px;cursor:pointer;background:none;padding:0;" />
+          <input id="fg-hex" type="text" value="#FFFFFF" maxlength="7"
+            style="font-family:'JetBrains Mono',monospace;font-size:0.9rem;background:var(--color-surface2);color:var(--color-body);border:1px solid var(--color-border);border-radius:8px;padding:0.5rem 0.65rem;outline:none;flex:1;transition:border-color 0.15s;"
+            oninput="onHexInput('fg')"
+            onfocus="this.style.borderColor='var(--color-accent)'" onblur="this.style.borderColor='var(--color-border)'" />
+        </div>
+      </div>
+
+      <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:14px;padding:1.25rem;display:flex;flex-direction:column;gap:0.75rem;">
+        <label style="font-size:0.78rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--color-muted);">Background Color</label>
+        <div style="display:flex;align-items:center;gap:0.75rem;">
+          <input type="color" id="bg-picker" value="#6366F1" oninput="onColorChange()"
+            style="width:48px;height:48px;border:none;border-radius:8px;cursor:pointer;background:none;padding:0;" />
+          <input id="bg-hex" type="text" value="#6366F1" maxlength="7"
+            style="font-family:'JetBrains Mono',monospace;font-size:0.9rem;background:var(--color-surface2);color:var(--color-body);border:1px solid var(--color-border);border-radius:8px;padding:0.5rem 0.65rem;outline:none;flex:1;transition:border-color 0.15s;"
+            oninput="onHexInput('bg')"
+            onfocus="this.style.borderColor='var(--color-accent)'" onblur="this.style.borderColor='var(--color-border)'" />
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Right: results -->
+    <div style="display:flex;flex-direction:column;gap:1rem;">
+
+      <!-- Ratio -->
+      <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:14px;padding:1.25rem;display:flex;align-items:center;gap:1rem;">
+        <div>
+          <div style="font-size:0.72rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--color-muted);margin-bottom:0.25rem;">Contrast Ratio</div>
+          <div id="ratio" style="font-family:'JetBrains Mono',monospace;font-size:2rem;color:var(--color-heading);font-weight:700;">—</div>
+        </div>
+      </div>
+
+      <!-- WCAG table -->
+      <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:14px;padding:1.25rem;">
+        <div style="display:grid;grid-template-columns:1fr auto auto;gap:0.5rem 1rem;align-items:center;">
+          <div style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--color-muted);">Level</div>
+          <div style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--color-muted);text-align:center;">Normal</div>
+          <div style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--color-muted);text-align:center;">Large</div>
+
+          <div style="font-size:0.9rem;color:var(--color-body);">WCAG AA  <span style="font-size:0.75rem;color:var(--color-muted);">(4.5 / 3.0)</span></div>
+          <div id="aa-normal" style="font-size:1.1rem;text-align:center;">—</div>
+          <div id="aa-large"  style="font-size:1.1rem;text-align:center;">—</div>
+
+          <div style="font-size:0.9rem;color:var(--color-body);">WCAG AAA <span style="font-size:0.75rem;color:var(--color-muted);">(7.0 / 4.5)</span></div>
+          <div id="aaa-normal" style="font-size:1.1rem;text-align:center;">—</div>
+          <div id="aaa-large"  style="font-size:1.1rem;text-align:center;">—</div>
+        </div>
+      </div>
+
+      <!-- Preview -->
+      <div id="preview-box" style="border-radius:14px;padding:1.5rem;border:1px solid var(--color-border);background:#6366F1;">
+        <div style="font-size:0.72rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:0.75rem;color:#FFFFFF;opacity:0.7;">Preview</div>
+        <div id="preview-normal" style="font-size:1rem;margin-bottom:0.5rem;color:#FFFFFF;">Normal text — The quick brown fox jumps over the lazy dog.</div>
+        <div id="preview-large"  style="font-size:1.5rem;font-weight:700;color:#FFFFFF;">Large text — The quick brown fox.</div>
+      </div>
+
+    </div>
+  </div>
+
+</Base>
+
+<script>
+  function hexToRgb(hex: string): [number,number,number] | null {
+    const m = /^#?([0-9a-fA-F]{6})$/.exec(hex.trim());
+    if (!m) return null;
+    const n = parseInt(m[1], 16);
+    return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+  }
+
+  function relativeLuminance(r: number, g: number, b: number): number {
+    const sRGB = [r, g, b].map(v => {
+      const c = v / 255;
+      return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+    });
+    return 0.2126 * sRGB[0] + 0.7152 * sRGB[1] + 0.0722 * sRGB[2];
+  }
+
+  function contrastRatio(l1: number, l2: number): number {
+    const lighter = Math.max(l1, l2);
+    const darker  = Math.min(l1, l2);
+    return (lighter + 0.05) / (darker + 0.05);
+  }
+
+  function badge(pass: boolean): string {
+    return pass
+      ? '<span style="color:var(--color-success);font-weight:700;">✓</span>'
+      : '<span style="color:var(--color-danger);font-weight:700;">✗</span>';
+  }
+
+  function onColorChange() {
+    const fg = (document.getElementById('fg-picker') as HTMLInputElement).value;
+    const bg = (document.getElementById('bg-picker') as HTMLInputElement).value;
+    (document.getElementById('fg-hex') as HTMLInputElement).value = fg.toUpperCase();
+    (document.getElementById('bg-hex') as HTMLInputElement).value = bg.toUpperCase();
+    evaluate(fg, bg);
+  }
+
+  function onHexInput(which: string) {
+    const hexEl = document.getElementById(`${which}-hex`) as HTMLInputElement;
+    const val = hexEl.value.startsWith('#') ? hexEl.value : '#' + hexEl.value;
+    if (!/^#[0-9a-fA-F]{6}$/.test(val)) return;
+    (document.getElementById(`${which}-picker`) as HTMLInputElement).value = val;
+    const fg = (document.getElementById('fg-picker') as HTMLInputElement).value;
+    const bg = (document.getElementById('bg-picker') as HTMLInputElement).value;
+    evaluate(fg, bg);
+  }
+
+  function evaluate(fg: string, bg: string) {
+    const fgRgb = hexToRgb(fg);
+    const bgRgb = hexToRgb(bg);
+    if (!fgRgb || !bgRgb) return;
+
+    const l1 = relativeLuminance(...fgRgb);
+    const l2 = relativeLuminance(...bgRgb);
+    const ratio = contrastRatio(l1, l2);
+
+    document.getElementById('ratio')!.textContent = ratio.toFixed(2) + ':1';
+    document.getElementById('aa-normal')!.innerHTML  = badge(ratio >= 4.5);
+    document.getElementById('aa-large')!.innerHTML   = badge(ratio >= 3.0);
+    document.getElementById('aaa-normal')!.innerHTML = badge(ratio >= 7.0);
+    document.getElementById('aaa-large')!.innerHTML  = badge(ratio >= 4.5);
+
+    const box = document.getElementById('preview-box')!;
+    box.style.background = bg;
+    const norm = document.getElementById('preview-normal')!;
+    const large = document.getElementById('preview-large')!;
+    norm.style.color = fg;
+    large.style.color = fg;
+  }
+
+  (window as any).onColorChange = onColorChange;
+  (window as any).onHexInput = onHexInput;
+
+  evaluate('#FFFFFF', '#6366F1');
+</script>

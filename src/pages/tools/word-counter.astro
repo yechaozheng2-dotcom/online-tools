@@ -1,0 +1,92 @@
+---
+import Base from '../../layouts/Base.astro';
+---
+<Base title="Word Counter" description="Free online word counter. Count words, characters, lines, paragraphs and estimate reading time instantly in your browser.">
+
+  <nav style="font-size:0.8rem;color:var(--color-muted);margin-bottom:1.5rem;">
+    <a href="/" style="color:var(--color-muted);text-decoration:none;" onmouseover="this.style.color='var(--color-heading)'" onmouseout="this.style.color='var(--color-muted)'">All Tools</a>
+    <span style="margin:0 0.5rem;">›</span>
+    <span style="color:var(--color-body);">Word Counter</span>
+  </nav>
+
+  <div style="margin-bottom:1.75rem;">
+    <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.5rem;">
+      <span style="font-size:1.4rem;">📝</span>
+      <h1 style="font-size:1.75rem;font-weight:700;color:var(--color-heading);margin:0;">Word Counter</h1>
+    </div>
+    <p style="color:var(--color-muted);font-size:0.9rem;margin:0;">Count words, characters, lines, paragraphs and estimate reading time. Runs entirely in your browser.</p>
+  </div>
+
+  <textarea id="input" placeholder="Type or paste your text here..." spellcheck="true"
+    style="width:100%;box-sizing:border-box;font-family:'JetBrains Mono',monospace;font-size:0.85rem;line-height:1.7;background:var(--color-surface);color:var(--color-body);border:1px solid var(--color-border);border-radius:12px;padding:1rem;resize:vertical;outline:none;min-height:240px;transition:border-color 0.15s;"
+    onfocus="this.style.borderColor='var(--color-accent)'" onblur="this.style.borderColor='var(--color-border)'" oninput="analyze()"></textarea>
+
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:0.75rem;margin-top:1rem;" id="stats-grid">
+    <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:12px;padding:1.1rem 1.2rem;">
+      <div id="stat-words" style="font-size:2rem;font-weight:700;color:var(--color-accent);font-family:'JetBrains Mono',monospace;">0</div>
+      <div style="font-size:0.75rem;text-transform:uppercase;letter-spacing:0.06em;color:var(--color-muted);margin-top:0.25rem;">Words</div>
+    </div>
+    <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:12px;padding:1.1rem 1.2rem;">
+      <div id="stat-chars" style="font-size:2rem;font-weight:700;color:var(--color-heading);font-family:'JetBrains Mono',monospace;">0</div>
+      <div style="font-size:0.75rem;text-transform:uppercase;letter-spacing:0.06em;color:var(--color-muted);margin-top:0.25rem;">Characters</div>
+    </div>
+    <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:12px;padding:1.1rem 1.2rem;">
+      <div id="stat-chars-nospace" style="font-size:2rem;font-weight:700;color:var(--color-heading);font-family:'JetBrains Mono',monospace;">0</div>
+      <div style="font-size:0.75rem;text-transform:uppercase;letter-spacing:0.06em;color:var(--color-muted);margin-top:0.25rem;">Characters (no spaces)</div>
+    </div>
+    <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:12px;padding:1.1rem 1.2rem;">
+      <div id="stat-lines" style="font-size:2rem;font-weight:700;color:var(--color-heading);font-family:'JetBrains Mono',monospace;">0</div>
+      <div style="font-size:0.75rem;text-transform:uppercase;letter-spacing:0.06em;color:var(--color-muted);margin-top:0.25rem;">Lines</div>
+    </div>
+    <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:12px;padding:1.1rem 1.2rem;">
+      <div id="stat-paras" style="font-size:2rem;font-weight:700;color:var(--color-heading);font-family:'JetBrains Mono',monospace;">0</div>
+      <div style="font-size:0.75rem;text-transform:uppercase;letter-spacing:0.06em;color:var(--color-muted);margin-top:0.25rem;">Paragraphs</div>
+    </div>
+    <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:12px;padding:1.1rem 1.2rem;">
+      <div id="stat-read" style="font-size:2rem;font-weight:700;color:var(--color-heading);font-family:'JetBrains Mono',monospace;">0s</div>
+      <div style="font-size:0.75rem;text-transform:uppercase;letter-spacing:0.06em;color:var(--color-muted);margin-top:0.25rem;">Reading Time</div>
+    </div>
+  </div>
+
+  <div style="margin-top:0.75rem;">
+    <button onclick="clearAll()" style="padding:0.4rem 1rem;background:var(--color-surface2);color:var(--color-muted);border:1px solid var(--color-border);border-radius:8px;font-size:0.82rem;font-weight:500;cursor:pointer;">Clear</button>
+  </div>
+
+</Base>
+
+<script>
+  function analyze() {
+    const raw = (document.getElementById('input') as HTMLTextAreaElement).value;
+
+    const words = raw.trim() === '' ? 0 : raw.trim().split(/\s+/).filter(w => w.length > 0).length;
+    const chars = raw.length;
+    const charsNoSpace = raw.replace(/\s/g, '').length;
+    const lines = raw === '' ? 0 : raw.split('\n').length;
+    const paras = raw.trim() === '' ? 0 : raw.trim().split(/\n\s*\n/).filter(p => p.trim().length > 0).length;
+
+    const totalSecs = Math.round((words / 200) * 60);
+    let readTime = '0s';
+    if (totalSecs >= 60) {
+      const m = Math.floor(totalSecs / 60);
+      const s = totalSecs % 60;
+      readTime = s > 0 ? `${m}m ${s}s` : `${m}m`;
+    } else if (totalSecs > 0) {
+      readTime = `${totalSecs}s`;
+    }
+
+    document.getElementById('stat-words')!.textContent = words.toLocaleString();
+    document.getElementById('stat-chars')!.textContent = chars.toLocaleString();
+    document.getElementById('stat-chars-nospace')!.textContent = charsNoSpace.toLocaleString();
+    document.getElementById('stat-lines')!.textContent = lines.toLocaleString();
+    document.getElementById('stat-paras')!.textContent = paras.toLocaleString();
+    document.getElementById('stat-read')!.textContent = readTime;
+  }
+
+  function clearAll() {
+    (document.getElementById('input') as HTMLTextAreaElement).value = '';
+    analyze();
+  }
+
+  (window as any).analyze = analyze;
+  (window as any).clearAll = clearAll;
+</script>

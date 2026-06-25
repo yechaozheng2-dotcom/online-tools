@@ -1,0 +1,106 @@
+---
+import Base from '../../layouts/Base.astro';
+---
+<Base title="Case Converter" description="Free online case converter. Convert text to lowercase, UPPERCASE, Title Case, camelCase, snake_case, kebab-case and more instantly.">
+
+  <nav style="font-size:0.8rem;color:var(--color-muted);margin-bottom:1.5rem;">
+    <a href="/" style="color:var(--color-muted);text-decoration:none;" onmouseover="this.style.color='var(--color-heading)'" onmouseout="this.style.color='var(--color-muted)'">All Tools</a>
+    <span style="margin:0 0.5rem;">›</span>
+    <span style="color:var(--color-body);">Case Converter</span>
+  </nav>
+
+  <div style="margin-bottom:1.75rem;">
+    <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.5rem;">
+      <span style="font-size:1.4rem;">🔡</span>
+      <h1 style="font-size:1.75rem;font-weight:700;color:var(--color-heading);margin:0;">Case Converter</h1>
+    </div>
+    <p style="color:var(--color-muted);font-size:0.9rem;margin:0;">Convert text between lowercase, UPPERCASE, Title Case, camelCase, snake_case, kebab-case, and more.</p>
+  </div>
+
+  <div style="margin-bottom:1rem;">
+    <span style="font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--color-muted);">Input Text</span>
+    <textarea id="input" placeholder="Type or paste your text here..." spellcheck="false"
+      style="width:100%;box-sizing:border-box;margin-top:0.4rem;font-family:'JetBrains Mono',monospace;font-size:0.85rem;line-height:1.7;background:var(--color-surface);color:var(--color-body);border:1px solid var(--color-border);border-radius:12px;padding:1rem;resize:vertical;outline:none;min-height:120px;transition:border-color 0.15s;"
+      onfocus="this.style.borderColor='var(--color-accent)'" onblur="this.style.borderColor='var(--color-border)'" oninput="convertAll()"></textarea>
+  </div>
+
+  <div id="results" style="display:flex;flex-direction:column;gap:0.5rem;"></div>
+
+</Base>
+
+<script>
+  const FORMATS = [
+    { id: 'lowercase',    label: 'lowercase',      fn: (s: string) => s.toLowerCase() },
+    { id: 'uppercase',    label: 'UPPERCASE',       fn: (s: string) => s.toUpperCase() },
+    { id: 'titlecase',    label: 'Title Case',      fn: titleCase },
+    { id: 'sentencecase', label: 'Sentence case',   fn: sentenceCase },
+    { id: 'camelcase',    label: 'camelCase',       fn: camelCase },
+    { id: 'pascalcase',   label: 'PascalCase',      fn: pascalCase },
+    { id: 'snakecase',    label: 'snake_case',      fn: snakeCase },
+    { id: 'kebabcase',    label: 'kebab-case',      fn: kebabCase },
+    { id: 'constantcase', label: 'CONSTANT_CASE',   fn: constantCase },
+  ];
+
+  function titleCase(s: string) {
+    return s.toLowerCase().replace(/(?:^|\s)\S/g, c => c.toUpperCase());
+  }
+  function sentenceCase(s: string) {
+    return s.toLowerCase().replace(/(^\s*\w|[.!?]\s*\w)/g, c => c.toUpperCase());
+  }
+  function words(s: string) {
+    return s.trim().split(/[\s\-_]+/).filter(w => w.length > 0);
+  }
+  function camelCase(s: string) {
+    const ws = words(s);
+    return ws.map((w, i) => i === 0 ? w.toLowerCase() : w[0].toUpperCase() + w.slice(1).toLowerCase()).join('');
+  }
+  function pascalCase(s: string) {
+    return words(s).map(w => w[0].toUpperCase() + w.slice(1).toLowerCase()).join('');
+  }
+  function snakeCase(s: string) {
+    return words(s).join('_').toLowerCase();
+  }
+  function kebabCase(s: string) {
+    return words(s).join('-').toLowerCase();
+  }
+  function constantCase(s: string) {
+    return words(s).join('_').toUpperCase();
+  }
+
+  function buildRows() {
+    const container = document.getElementById('results')!;
+    container.innerHTML = '';
+    for (const fmt of FORMATS) {
+      const row = document.createElement('div');
+      row.style.cssText = 'display:grid;grid-template-columns:140px 1fr auto;align-items:center;gap:0.75rem;background:var(--color-surface);border:1px solid var(--color-border);border-radius:10px;padding:0.65rem 1rem;';
+      row.innerHTML = `
+        <span style="font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;color:var(--color-muted);">${fmt.label}</span>
+        <pre id="out-${fmt.id}" style="margin:0;font-family:'JetBrains Mono',monospace;font-size:0.83rem;color:#a8ffb0;white-space:pre-wrap;word-break:break-all;overflow:hidden;"></pre>
+        <button data-fmt="${fmt.id}" onclick="copyFmt('${fmt.id}')" style="padding:0.3rem 0.7rem;background:var(--color-surface2);color:var(--color-body);border:1px solid var(--color-border);border-radius:6px;font-size:0.78rem;cursor:pointer;white-space:nowrap;">Copy</button>
+      `;
+      container.appendChild(row);
+    }
+  }
+
+  function convertAll() {
+    const raw = (document.getElementById('input') as HTMLTextAreaElement).value;
+    for (const fmt of FORMATS) {
+      const el = document.getElementById(`out-${fmt.id}`);
+      if (el) el.textContent = raw ? fmt.fn(raw) : '';
+    }
+  }
+
+  function copyFmt(id: string) {
+    const text = document.getElementById(`out-${id}`)?.textContent || '';
+    if (!text) return;
+    navigator.clipboard.writeText(text).then(() => {
+      const btn = document.querySelector(`[data-fmt="${id}"]`) as HTMLButtonElement;
+      if (btn) { btn.textContent = '✓ Copied!'; setTimeout(() => { btn.textContent = 'Copy'; }, 1500); }
+    });
+  }
+
+  buildRows();
+
+  (window as any).convertAll = convertAll;
+  (window as any).copyFmt = copyFmt;
+</script>

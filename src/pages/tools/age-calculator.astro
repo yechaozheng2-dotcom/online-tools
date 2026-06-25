@@ -1,0 +1,121 @@
+---
+import Base from '../../layouts/Base.astro';
+---
+<Base title="Age Calculator" description="Free online age calculator. Enter your birthday to find your exact age in years, months and days, plus days until your next birthday.">
+
+  <nav style="font-size:0.8rem;color:var(--color-muted);margin-bottom:1.5rem;">
+    <a href="/" style="color:var(--color-muted);text-decoration:none;" onmouseover="this.style.color='var(--color-heading)'" onmouseout="this.style.color='var(--color-muted)'">All Tools</a>
+    <span style="margin:0 0.5rem;">›</span>
+    <span style="color:var(--color-body);">Age Calculator</span>
+  </nav>
+
+  <div style="margin-bottom:1.75rem;">
+    <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.5rem;">
+      <span style="font-size:1.5rem;">🎂</span>
+      <h1 style="font-size:1.75rem;font-weight:700;color:var(--color-heading);margin:0;">Age Calculator</h1>
+    </div>
+    <p style="color:var(--color-muted);font-size:0.9rem;margin:0;">Enter your birthday to see your exact age and more stats, updated every second.</p>
+  </div>
+
+  <div style="display:grid;grid-template-columns:280px 1fr;gap:1.5rem;align-items:start;">
+
+    <!-- Left: date picker -->
+    <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:14px;padding:1.5rem;display:flex;flex-direction:column;gap:1rem;">
+      <label style="font-size:0.78rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--color-muted);">Date of Birth</label>
+      <input id="dob" type="date" oninput="update()"
+        style="font-family:'JetBrains Mono',monospace;font-size:0.95rem;background:var(--color-surface2);color:var(--color-body);border:1px solid var(--color-border);border-radius:8px;padding:0.6rem 0.75rem;outline:none;transition:border-color 0.15s;width:100%;box-sizing:border-box;"
+        onfocus="this.style.borderColor='var(--color-accent)'" onblur="this.style.borderColor='var(--color-border)'" />
+      <p id="hint" style="font-size:0.8rem;color:var(--color-muted);margin:0;">Select your birthday above to calculate your age.</p>
+    </div>
+
+    <!-- Right: stats -->
+    <div style="display:flex;flex-direction:column;gap:0.75rem;">
+
+      <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:12px;padding:1.1rem 1.25rem;">
+        <div style="font-size:0.72rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--color-muted);margin-bottom:0.35rem;">Exact Age</div>
+        <div id="exact-age" style="font-family:'JetBrains Mono',monospace;font-size:1.2rem;color:#a8ffb0;font-weight:700;">—</div>
+      </div>
+
+      <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:12px;padding:1.1rem 1.25rem;">
+        <div style="font-size:0.72rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--color-muted);margin-bottom:0.35rem;">Next Birthday</div>
+        <div id="next-bday" style="font-family:'JetBrains Mono',monospace;font-size:1.2rem;color:#a8ffb0;font-weight:700;">—</div>
+      </div>
+
+      <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:12px;padding:1.1rem 1.25rem;">
+        <div style="font-size:0.72rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--color-muted);margin-bottom:0.35rem;">Total Days Lived</div>
+        <div id="total-days" style="font-family:'JetBrains Mono',monospace;font-size:1.2rem;color:#a8ffb0;font-weight:700;">—</div>
+      </div>
+
+      <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:12px;padding:1.1rem 1.25rem;">
+        <div style="font-size:0.72rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--color-muted);margin-bottom:0.35rem;">Total Hours Lived</div>
+        <div id="total-hours" style="font-family:'JetBrains Mono',monospace;font-size:1.2rem;color:#a8ffb0;font-weight:700;">—</div>
+      </div>
+
+    </div>
+  </div>
+
+</Base>
+
+<script>
+  let intervalId: number | null = null;
+
+  function update() {
+    const dobEl = document.getElementById('dob') as HTMLInputElement;
+    const val = dobEl.value;
+    if (!val) return;
+
+    if (intervalId) clearInterval(intervalId);
+    intervalId = window.setInterval(tick, 1000);
+    tick();
+  }
+
+  function tick() {
+    const dobEl = document.getElementById('dob') as HTMLInputElement;
+    const val = dobEl.value;
+    if (!val) return;
+
+    const dob = new Date(val);
+    const now = new Date();
+
+    if (dob >= now) {
+      document.getElementById('exact-age')!.textContent = 'Not born yet';
+      document.getElementById('next-bday')!.textContent = '—';
+      document.getElementById('total-days')!.textContent = '—';
+      document.getElementById('total-hours')!.textContent = '—';
+      return;
+    }
+
+    // Exact age
+    let years = now.getFullYear() - dob.getFullYear();
+    let months = now.getMonth() - dob.getMonth();
+    let days = now.getDate() - dob.getDate();
+
+    if (days < 0) {
+      months--;
+      const prevMonth = new Date(now.getFullYear(), now.getMonth(), 0);
+      days += prevMonth.getDate();
+    }
+    if (months < 0) {
+      years--;
+      months += 12;
+    }
+    document.getElementById('exact-age')!.textContent = `${years} years, ${months} months, ${days} days`;
+
+    // Next birthday
+    let nextBday = new Date(now.getFullYear(), dob.getMonth(), dob.getDate());
+    if (nextBday <= now) nextBday.setFullYear(now.getFullYear() + 1);
+    const diffMs = nextBday.getTime() - now.getTime();
+    const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+    document.getElementById('next-bday')!.textContent =
+      diffDays === 0 ? '🎉 Today is your birthday!' : `${diffDays} day${diffDays === 1 ? '' : 's'} away`;
+
+    // Total days / hours
+    const totalMs = now.getTime() - dob.getTime();
+    const totalDays = Math.floor(totalMs / (1000 * 60 * 60 * 24));
+    const totalHours = Math.floor(totalMs / (1000 * 60 * 60));
+    document.getElementById('total-days')!.textContent = totalDays.toLocaleString() + ' days';
+    document.getElementById('total-hours')!.textContent = totalHours.toLocaleString() + ' hours';
+  }
+
+  (window as any).update = update;
+</script>

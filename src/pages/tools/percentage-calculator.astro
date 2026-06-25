@@ -1,0 +1,127 @@
+---
+import Base from '../../layouts/Base.astro';
+---
+<Base title="Percentage Calculator" description="Free online percentage calculator. Calculate percentages, find what percent one number is of another, and compute percentage increases/decreases instantly.">
+
+  <nav style="font-size:0.8rem;color:var(--color-muted);margin-bottom:1.5rem;">
+    <a href="/" style="color:var(--color-muted);text-decoration:none;" onmouseover="this.style.color='var(--color-heading)'" onmouseout="this.style.color='var(--color-muted)'">All Tools</a>
+    <span style="margin:0 0.5rem;">›</span>
+    <span style="color:var(--color-body);">Percentage Calculator</span>
+  </nav>
+
+  <div style="margin-bottom:1.75rem;">
+    <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.5rem;">
+      <span style="font-size:1.5rem;">%</span>
+      <h1 style="font-size:1.75rem;font-weight:700;color:var(--color-heading);margin:0;">Percentage Calculator</h1>
+    </div>
+    <p style="color:var(--color-muted);font-size:0.9rem;margin:0;">Three percentage calculators — all updating in real time.</p>
+  </div>
+
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1.25rem;">
+
+    <!-- Card 1: X% of Y -->
+    <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:14px;padding:1.5rem;display:flex;flex-direction:column;gap:1rem;">
+      <div style="font-size:0.78rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--color-accent);">Mode 1</div>
+      <div style="color:var(--color-heading);font-size:1rem;font-weight:600;">What is X% of Y?</div>
+      <div style="display:flex;flex-direction:column;gap:0.6rem;">
+        <div style="display:flex;align-items:center;gap:0.5rem;">
+          <input id="m1x" type="number" placeholder="X" oninput="calc1()"
+            style="font-family:'JetBrains Mono',monospace;width:80px;background:var(--color-surface2);color:var(--color-body);border:1px solid var(--color-border);border-radius:8px;padding:0.5rem 0.65rem;outline:none;font-size:0.9rem;"
+            onfocus="this.style.borderColor='var(--color-accent)'" onblur="this.style.borderColor='var(--color-border)'" />
+          <span style="color:var(--color-muted);font-size:0.9rem;">% of</span>
+          <input id="m1y" type="number" placeholder="Y" oninput="calc1()"
+            style="font-family:'JetBrains Mono',monospace;width:80px;background:var(--color-surface2);color:var(--color-body);border:1px solid var(--color-border);border-radius:8px;padding:0.5rem 0.65rem;outline:none;font-size:0.9rem;"
+            onfocus="this.style.borderColor='var(--color-accent)'" onblur="this.style.borderColor='var(--color-border)'" />
+        </div>
+      </div>
+      <div style="border-top:1px solid var(--color-border);padding-top:0.75rem;">
+        <span style="font-size:0.8rem;color:var(--color-muted);">Result: </span>
+        <span id="m1r" style="font-family:'JetBrains Mono',monospace;font-size:1.1rem;color:#a8ffb0;font-weight:700;">—</span>
+      </div>
+    </div>
+
+    <!-- Card 2: X is what % of Y -->
+    <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:14px;padding:1.5rem;display:flex;flex-direction:column;gap:1rem;">
+      <div style="font-size:0.78rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--color-accent);">Mode 2</div>
+      <div style="color:var(--color-heading);font-size:1rem;font-weight:600;">X is what % of Y?</div>
+      <div style="display:flex;flex-direction:column;gap:0.6rem;">
+        <div style="display:flex;align-items:center;gap:0.5rem;">
+          <input id="m2x" type="number" placeholder="X" oninput="calc2()"
+            style="font-family:'JetBrains Mono',monospace;width:80px;background:var(--color-surface2);color:var(--color-body);border:1px solid var(--color-border);border-radius:8px;padding:0.5rem 0.65rem;outline:none;font-size:0.9rem;"
+            onfocus="this.style.borderColor='var(--color-accent)'" onblur="this.style.borderColor='var(--color-border)'" />
+          <span style="color:var(--color-muted);font-size:0.9rem;">is what % of</span>
+          <input id="m2y" type="number" placeholder="Y" oninput="calc2()"
+            style="font-family:'JetBrains Mono',monospace;width:80px;background:var(--color-surface2);color:var(--color-body);border:1px solid var(--color-border);border-radius:8px;padding:0.5rem 0.65rem;outline:none;font-size:0.9rem;"
+            onfocus="this.style.borderColor='var(--color-accent)'" onblur="this.style.borderColor='var(--color-border)'" />
+        </div>
+      </div>
+      <div style="border-top:1px solid var(--color-border);padding-top:0.75rem;">
+        <span style="font-size:0.8rem;color:var(--color-muted);">Result: </span>
+        <span id="m2r" style="font-family:'JetBrains Mono',monospace;font-size:1.1rem;color:#a8ffb0;font-weight:700;">—</span>
+      </div>
+    </div>
+
+    <!-- Card 3: X increased/decreased by Y% -->
+    <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:14px;padding:1.5rem;display:flex;flex-direction:column;gap:1rem;">
+      <div style="font-size:0.78rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--color-accent);">Mode 3</div>
+      <div style="color:var(--color-heading);font-size:1rem;font-weight:600;">X increased / decreased by Y%</div>
+      <div style="display:flex;flex-direction:column;gap:0.6rem;">
+        <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;">
+          <input id="m3x" type="number" placeholder="X" oninput="calc3()"
+            style="font-family:'JetBrains Mono',monospace;width:80px;background:var(--color-surface2);color:var(--color-body);border:1px solid var(--color-border);border-radius:8px;padding:0.5rem 0.65rem;outline:none;font-size:0.9rem;"
+            onfocus="this.style.borderColor='var(--color-accent)'" onblur="this.style.borderColor='var(--color-border)'" />
+          <select id="m3op" onchange="calc3()"
+            style="background:var(--color-surface2);color:var(--color-body);border:1px solid var(--color-border);border-radius:8px;padding:0.5rem 0.5rem;outline:none;font-size:0.85rem;cursor:pointer;">
+            <option value="inc">increased by</option>
+            <option value="dec">decreased by</option>
+          </select>
+          <input id="m3y" type="number" placeholder="Y%" oninput="calc3()"
+            style="font-family:'JetBrains Mono',monospace;width:70px;background:var(--color-surface2);color:var(--color-body);border:1px solid var(--color-border);border-radius:8px;padding:0.5rem 0.65rem;outline:none;font-size:0.9rem;"
+            onfocus="this.style.borderColor='var(--color-accent)'" onblur="this.style.borderColor='var(--color-border)'" />
+        </div>
+      </div>
+      <div style="border-top:1px solid var(--color-border);padding-top:0.75rem;">
+        <span style="font-size:0.8rem;color:var(--color-muted);">Result: </span>
+        <span id="m3r" style="font-family:'JetBrains Mono',monospace;font-size:1.1rem;color:#a8ffb0;font-weight:700;">—</span>
+      </div>
+    </div>
+
+  </div>
+
+</Base>
+
+<script>
+  function fmt(n: number): string {
+    return parseFloat(n.toPrecision(10)).toString();
+  }
+
+  function calc1() {
+    const x = parseFloat((document.getElementById('m1x') as HTMLInputElement).value);
+    const y = parseFloat((document.getElementById('m1y') as HTMLInputElement).value);
+    const el = document.getElementById('m1r')!;
+    if (isNaN(x) || isNaN(y)) { el.textContent = '—'; return; }
+    el.textContent = fmt(x / 100 * y);
+  }
+
+  function calc2() {
+    const x = parseFloat((document.getElementById('m2x') as HTMLInputElement).value);
+    const y = parseFloat((document.getElementById('m2y') as HTMLInputElement).value);
+    const el = document.getElementById('m2r')!;
+    if (isNaN(x) || isNaN(y) || y === 0) { el.textContent = '—'; return; }
+    el.textContent = fmt(x / y * 100) + '%';
+  }
+
+  function calc3() {
+    const x = parseFloat((document.getElementById('m3x') as HTMLInputElement).value);
+    const y = parseFloat((document.getElementById('m3y') as HTMLInputElement).value);
+    const op = (document.getElementById('m3op') as HTMLSelectElement).value;
+    const el = document.getElementById('m3r')!;
+    if (isNaN(x) || isNaN(y)) { el.textContent = '—'; return; }
+    const result = op === 'inc' ? x * (1 + y / 100) : x * (1 - y / 100);
+    el.textContent = fmt(result);
+  }
+
+  (window as any).calc1 = calc1;
+  (window as any).calc2 = calc2;
+  (window as any).calc3 = calc3;
+</script>
