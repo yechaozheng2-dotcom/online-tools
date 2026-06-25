@@ -15,6 +15,10 @@
     "@astrojs/sitemap": "^3.7.3",
     "@tailwindcss/vite": "^4.3.1",
     "astro": "^7.0.2",
+    "qrcode": "^1.5.4",
     "tailwindcss": "^4.3.1"
+  },
+  "devDependencies": {
+    "@types/qrcode": "^1.5.6"
   }
 }

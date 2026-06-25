@@ -1,0 +1,118 @@
+---
+import Base from '../../layouts/Base.astro';
+---
+<Base title="Unix Timestamp Converter" description="Free online Unix timestamp converter. Convert timestamps to readable dates and back. Supports multiple timezones. Runs in your browser.">
+
+  <nav style="font-size:0.8rem;color:var(--color-muted);margin-bottom:1.5rem;">
+    <a href="/" style="color:var(--color-muted);text-decoration:none;" onmouseover="this.style.color='var(--color-heading)'" onmouseout="this.style.color='var(--color-muted)'">All Tools</a>
+    <span style="margin:0 0.5rem;">›</span>
+    <span style="color:var(--color-body);">Timestamp Converter</span>
+  </nav>
+
+  <div style="margin-bottom:1.75rem;">
+    <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.5rem;">
+      <span style="font-size:1.5rem;">⏱</span>
+      <h1 style="font-size:1.75rem;font-weight:700;color:var(--color-heading);margin:0;">Unix Timestamp Converter</h1>
+    </div>
+    <p style="color:var(--color-muted);font-size:0.9rem;margin:0;">Convert Unix timestamps to human-readable dates and back. Supports seconds and milliseconds.</p>
+  </div>
+
+  <!-- Now badge -->
+  <div id="now-bar" style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:10px;padding:0.75rem 1rem;margin-bottom:1.5rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap;">
+    <span style="font-size:0.8rem;color:var(--color-muted);">Current time:</span>
+    <span id="now-ts" style="font-family:'JetBrains Mono',monospace;font-size:0.9rem;color:var(--color-accent);"></span>
+    <span id="now-iso" style="font-family:'JetBrains Mono',monospace;font-size:0.9rem;color:var(--color-body);"></span>
+    <button onclick="useNow()" style="margin-left:auto;padding:0.3rem 0.75rem;background:var(--color-surface2);color:var(--color-body);border:1px solid var(--color-border);border-radius:6px;font-size:0.8rem;cursor:pointer;">Use now</button>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;">
+    <!-- Timestamp → Date -->
+    <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:14px;padding:1.5rem;">
+      <h2 style="font-size:0.95rem;font-weight:600;color:var(--color-heading);margin:0 0 1rem;">Timestamp → Date</h2>
+      <div style="margin-bottom:0.75rem;">
+        <label style="font-size:0.8rem;color:var(--color-muted);display:block;margin-bottom:0.35rem;">Unix timestamp</label>
+        <div style="display:flex;gap:0.5rem;">
+          <input id="ts-input" type="number" placeholder="e.g. 1719273600"
+            style="flex:1;font-family:'JetBrains Mono',monospace;font-size:0.9rem;background:var(--color-surface2);color:var(--color-body);border:1px solid var(--color-border);border-radius:8px;padding:0.5rem 0.75rem;outline:none;transition:border-color 0.15s;"
+            onfocus="this.style.borderColor='var(--color-accent)'" onblur="this.style.borderColor='var(--color-border)'" oninput="tsToDate()" />
+          <select id="ts-unit" onchange="tsToDate()" style="background:var(--color-surface2);color:var(--color-body);border:1px solid var(--color-border);border-radius:8px;padding:0.5rem 0.6rem;font-size:0.8rem;outline:none;">
+            <option value="s">seconds</option>
+            <option value="ms">milliseconds</option>
+          </select>
+        </div>
+      </div>
+      <div id="ts-result" style="font-family:'JetBrains Mono',monospace;font-size:0.82rem;color:var(--color-body);background:var(--color-surface2);border-radius:8px;padding:1rem;min-height:4rem;white-space:pre-line;line-height:1.8;"></div>
+    </div>
+
+    <!-- Date → Timestamp -->
+    <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:14px;padding:1.5rem;">
+      <h2 style="font-size:0.95rem;font-weight:600;color:var(--color-heading);margin:0 0 1rem;">Date → Timestamp</h2>
+      <div style="margin-bottom:0.75rem;">
+        <label style="font-size:0.8rem;color:var(--color-muted);display:block;margin-bottom:0.35rem;">Date & time (local)</label>
+        <input id="date-input" type="datetime-local"
+          style="width:100%;font-family:'JetBrains Mono',monospace;font-size:0.85rem;background:var(--color-surface2);color:var(--color-body);border:1px solid var(--color-border);border-radius:8px;padding:0.5rem 0.75rem;outline:none;transition:border-color 0.15s;"
+          onfocus="this.style.borderColor='var(--color-accent)'" onblur="this.style.borderColor='var(--color-border)'" oninput="dateToTs()" />
+      </div>
+      <div id="date-result" style="font-family:'JetBrains Mono',monospace;font-size:0.82rem;color:var(--color-body);background:var(--color-surface2);border-radius:8px;padding:1rem;min-height:4rem;white-space:pre-line;line-height:1.8;"></div>
+    </div>
+  </div>
+</Base>
+
+<script>
+  function pad(n: number) { return String(n).padStart(2, '0'); }
+
+  function updateNow() {
+    const now = Date.now();
+    document.getElementById('now-ts')!.textContent = `${Math.floor(now / 1000)}`;
+    document.getElementById('now-iso')!.textContent = new Date(now).toISOString();
+  }
+  setInterval(updateNow, 1000);
+  updateNow();
+
+  function useNow() {
+    const ts = Math.floor(Date.now() / 1000);
+    (document.getElementById('ts-input') as HTMLInputElement).value = String(ts);
+    (document.getElementById('ts-unit') as HTMLSelectElement).value = 's';
+    tsToDate();
+  }
+
+  function tsToDate() {
+    const val = (document.getElementById('ts-input') as HTMLInputElement).value;
+    const unit = (document.getElementById('ts-unit') as HTMLSelectElement).value;
+    const el = document.getElementById('ts-result')!;
+    if (!val) { el.textContent = ''; return; }
+    const ms = unit === 'ms' ? parseFloat(val) : parseFloat(val) * 1000;
+    const d = new Date(ms);
+    if (isNaN(d.getTime())) { el.textContent = '✗ Invalid timestamp'; el.style.color = 'var(--color-danger)'; return; }
+    el.style.color = 'var(--color-body)';
+    el.textContent = [
+      `UTC:    ${d.toUTCString()}`,
+      `ISO:    ${d.toISOString()}`,
+      `Local:  ${d.toLocaleString()}`,
+      `Date:   ${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`,
+      `Time:   ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`,
+    ].join('\n');
+  }
+
+  function dateToTs() {
+    const val = (document.getElementById('date-input') as HTMLInputElement).value;
+    const el = document.getElementById('date-result')!;
+    if (!val) { el.textContent = ''; return; }
+    const d = new Date(val);
+    if (isNaN(d.getTime())) { el.textContent = '✗ Invalid date'; el.style.color = 'var(--color-danger)'; return; }
+    el.style.color = 'var(--color-body)';
+    const ms = d.getTime();
+    const s = Math.floor(ms / 1000);
+    el.textContent = [`Seconds:  ${s}`, `Milliseconds: ${ms}`, `ISO: ${d.toISOString()}`].join('\n');
+  }
+
+  // Set default datetime-local to now
+  const now = new Date();
+  const local = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}`;
+  (document.getElementById('date-input') as HTMLInputElement).value = local;
+  dateToTs();
+
+  (window as any).useNow = useNow;
+  (window as any).tsToDate = tsToDate;
+  (window as any).dateToTs = dateToTs;
+</script>

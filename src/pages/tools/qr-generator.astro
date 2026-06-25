@@ -1,0 +1,142 @@
+---
+import Base from '../../layouts/Base.astro';
+---
+<Base title="QR Code Generator" description="Free online QR code generator. Create QR codes from any text or URL instantly. Download as PNG. Runs entirely in your browser.">
+
+  <nav style="font-size:0.8rem;color:var(--color-muted);margin-bottom:1.5rem;">
+    <a href="/" style="color:var(--color-muted);text-decoration:none;" onmouseover="this.style.color='var(--color-heading)'" onmouseout="this.style.color='var(--color-muted)'">All Tools</a>
+    <span style="margin:0 0.5rem;">›</span>
+    <span style="color:var(--color-body);">QR Code Generator</span>
+  </nav>
+
+  <div style="margin-bottom:1.75rem;">
+    <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.5rem;">
+      <span style="font-size:1.5rem;font-family:'JetBrains Mono',monospace;">▦</span>
+      <h1 style="font-size:1.75rem;font-weight:700;color:var(--color-heading);margin:0;">QR Code Generator</h1>
+    </div>
+    <p style="color:var(--color-muted);font-size:0.9rem;margin:0;">Generate a QR code from any text, URL or data. Download as PNG for free.</p>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr auto;gap:1.5rem;align-items:start;">
+    <!-- Left: input + options -->
+    <div style="display:flex;flex-direction:column;gap:1rem;">
+      <div>
+        <label style="font-size:0.8rem;font-weight:600;color:var(--color-muted);text-transform:uppercase;letter-spacing:0.06em;display:block;margin-bottom:0.4rem;">Text or URL</label>
+        <textarea id="qr-input" rows="4" placeholder="https://tool.top1pick.com"
+          style="width:100%;font-family:'JetBrains Mono',monospace;font-size:0.9rem;line-height:1.5;background:var(--color-surface);color:var(--color-body);border:1px solid var(--color-border);border-radius:12px;padding:0.875rem;resize:vertical;outline:none;transition:border-color 0.15s;"
+          onfocus="this.style.borderColor='var(--color-accent)'" onblur="this.style.borderColor='var(--color-border)'" oninput="debounceGenerate()"></textarea>
+      </div>
+
+      <!-- Options -->
+      <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:12px;padding:1.25rem;display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+        <div>
+          <label style="font-size:0.8rem;color:var(--color-muted);display:block;margin-bottom:0.35rem;">Size</label>
+          <select id="qr-size" onchange="generateQR()" style="width:100%;background:var(--color-surface2);color:var(--color-body);border:1px solid var(--color-border);border-radius:8px;padding:0.45rem 0.6rem;font-size:0.85rem;outline:none;">
+            <option value="200">200 × 200</option>
+            <option value="300" selected>300 × 300</option>
+            <option value="400">400 × 400</option>
+            <option value="512">512 × 512</option>
+          </select>
+        </div>
+        <div>
+          <label style="font-size:0.8rem;color:var(--color-muted);display:block;margin-bottom:0.35rem;">Error correction</label>
+          <select id="qr-ecl" onchange="generateQR()" style="width:100%;background:var(--color-surface2);color:var(--color-body);border:1px solid var(--color-border);border-radius:8px;padding:0.45rem 0.6rem;font-size:0.85rem;outline:none;">
+            <option value="L">L — Low (7%)</option>
+            <option value="M" selected>M — Medium (15%)</option>
+            <option value="Q">Q — Quartile (25%)</option>
+            <option value="H">H — High (30%)</option>
+          </select>
+        </div>
+        <div>
+          <label style="font-size:0.8rem;color:var(--color-muted);display:block;margin-bottom:0.35rem;">Dark color</label>
+          <input type="color" id="qr-dark" value="#000000" onchange="generateQR()" style="width:100%;height:36px;border:1px solid var(--color-border);border-radius:8px;cursor:pointer;background:none;padding:2px;" />
+        </div>
+        <div>
+          <label style="font-size:0.8rem;color:var(--color-muted);display:block;margin-bottom:0.35rem;">Light color</label>
+          <input type="color" id="qr-light" value="#ffffff" onchange="generateQR()" style="width:100%;height:36px;border:1px solid var(--color-border);border-radius:8px;cursor:pointer;background:none;padding:2px;" />
+        </div>
+      </div>
+
+      <button onclick="generateQR()" style="padding:0.6rem 1rem;background:var(--color-accent);color:#fff;border:none;border-radius:10px;font-size:0.9rem;font-weight:600;cursor:pointer;transition:opacity 0.15s;" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">
+        ▦ Generate QR Code
+      </button>
+    </div>
+
+    <!-- Right: QR output -->
+    <div style="display:flex;flex-direction:column;align-items:center;gap:0.75rem;">
+      <div id="qr-container" style="background:#fff;border-radius:14px;padding:1rem;border:1px solid var(--color-border);min-width:200px;min-height:200px;display:flex;align-items:center;justify-content:center;">
+        <canvas id="qr-canvas"></canvas>
+      </div>
+      <button id="btn-download" onclick="downloadQR()" disabled style="width:100%;padding:0.5rem 1rem;background:var(--color-surface2);color:var(--color-muted);border:1px solid var(--color-border);border-radius:8px;font-size:0.85rem;font-weight:500;cursor:not-allowed;">
+        ⬇ Download PNG
+      </button>
+      <div id="qr-status" style="font-size:0.8rem;color:var(--color-muted);font-family:'JetBrains Mono',monospace;text-align:center;"></div>
+    </div>
+  </div>
+</Base>
+
+<script>
+  import QRCode from 'qrcode';
+
+  let debounceTimer: ReturnType<typeof setTimeout>;
+
+  function debounceGenerate() {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(generateQR, 400);
+  }
+
+  async function generateQR() {
+    const text = (document.getElementById('qr-input') as HTMLTextAreaElement).value.trim();
+    const canvas = document.getElementById('qr-canvas') as HTMLCanvasElement;
+    const status = document.getElementById('qr-status')!;
+    const btn = document.getElementById('btn-download') as HTMLButtonElement;
+
+    if (!text) {
+      const ctx = canvas.getContext('2d');
+      if (ctx) { ctx.clearRect(0,0,canvas.width,canvas.height); }
+      status.textContent = '';
+      btn.disabled = true;
+      btn.style.cursor = 'not-allowed';
+      btn.style.color = 'var(--color-muted)';
+      return;
+    }
+
+    const size    = parseInt((document.getElementById('qr-size') as HTMLSelectElement).value);
+    const ecl     = (document.getElementById('qr-ecl') as HTMLSelectElement).value as 'L'|'M'|'Q'|'H';
+    const dark    = (document.getElementById('qr-dark') as HTMLInputElement).value;
+    const light   = (document.getElementById('qr-light') as HTMLInputElement).value;
+
+    try {
+      await QRCode.toCanvas(canvas, text, {
+        width: size,
+        errorCorrectionLevel: ecl,
+        color: { dark, light },
+        margin: 1,
+      });
+      status.textContent = `✓ ${text.length} chars`;
+      status.style.color = 'var(--color-success)';
+      btn.disabled = false;
+      btn.style.cursor = 'pointer';
+      btn.style.color = 'var(--color-body)';
+    } catch (e: any) {
+      status.textContent = `✗ ${e.message}`;
+      status.style.color = 'var(--color-danger)';
+    }
+  }
+
+  function downloadQR() {
+    const canvas = document.getElementById('qr-canvas') as HTMLCanvasElement;
+    const link = document.createElement('a');
+    link.download = 'qrcode.png';
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+  }
+
+  (window as any).generateQR = generateQR;
+  (window as any).downloadQR = downloadQR;
+  (window as any).debounceGenerate = debounceGenerate;
+
+  // Generate with default text on load
+  (document.getElementById('qr-input') as HTMLTextAreaElement).value = 'https://tool.top1pick.com';
+  generateQR();
+</script>
