@@ -4,7 +4,7 @@ import tailwindcss from '@tailwindcss/vite';
 import sitemap from '@astrojs/sitemap';
 
 export default defineConfig({
-  site: 'https://online-tools.top1pick.com',
+  site: 'https://tool.top1pick.com',
   integrations: [sitemap()],
   vite: {
     plugins: [tailwindcss()],

@@ -1,28 +1,62 @@
 ---
 import Base from '../layouts/Base.astro';
 import { tools, categories } from '../data/tools';
+
+const categoryIcons: Record<string, string> = {
+  Developer: '💻',
+  Converter: '🔄',
+  Calculator: '🧮',
+  Text: '📝',
+};
 ---
 <Base title="Free Online Tools">
-  <div class="text-center mb-10">
-    <h1 class="text-4xl font-bold text-gray-900 mb-3">Free Online Tools</h1>
-    <p class="text-lg text-gray-500">Fast, free, private — everything runs in your browser.</p>
-  </div>
 
+  <!-- Hero -->
+  <section style="text-align: center; padding: 3.5rem 0 3rem;">
+    <div style="display: inline-flex; align-items: center; gap: 0.5rem; background: var(--color-surface2); border: 1px solid var(--color-border); border-radius: 999px; padding: 0.3rem 1rem; font-size: 0.8rem; color: var(--color-muted); margin-bottom: 1.5rem;">
+      ⚡ Fast · Private · No login required
+    </div>
+    <h1 style="font-size: 2.75rem; font-weight: 800; color: var(--color-heading); line-height: 1.2; margin: 0 0 1rem;">
+      Free Online Tools
+    </h1>
+    <p style="font-size: 1.1rem; color: var(--color-muted); max-width: 480px; margin: 0 auto;">
+      Developer utilities that run entirely in your browser. No data leaves your device.
+    </p>
+  </section>
+
+  <!-- Tool grid -->
   {categories.map(cat => (
-    <section class="mb-10">
-      <h2 class="text-sm font-semibold uppercase tracking-wide text-gray-400 mb-4">{cat}</h2>
-      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+    <section id={cat.toLowerCase()} style="margin-bottom: 3rem;">
+      <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1.25rem;">
+        <span style="font-size: 1rem;">{categoryIcons[cat] ?? '🔧'}</span>
+        <h2 style="font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--color-muted); margin: 0;">{cat}</h2>
+        <div style="flex: 1; height: 1px; background: var(--color-border); margin-left: 0.5rem;"></div>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem;">
         {tools.filter(t => t.category === cat).map(tool => (
-          <a href={`/tools/${tool.slug}`}
-             class="bg-white border border-gray-200 rounded-xl p-5 hover:border-indigo-400 hover:shadow-md transition group">
-            <div class="text-2xl font-mono text-indigo-500 mb-3 group-hover:scale-110 transition-transform inline-block">
-              {tool.icon}
+          <a href={`/tools/${tool.slug}`} style="display: block; text-decoration: none;">
+            <div style="background: var(--color-surface); border: 1px solid var(--color-border); border-radius: 14px; padding: 1.5rem; transition: border-color 0.15s, transform 0.15s;"
+              onmouseover="this.style.borderColor='var(--color-accent)'; this.style.transform='translateY(-2px)'"
+              onmouseout="this.style.borderColor='var(--color-border)'; this.style.transform='translateY(0)'">
+              <div style="font-size: 1.75rem; font-family: 'JetBrains Mono', monospace; color: var(--color-accent); margin-bottom: 0.75rem; font-weight: 500;">
+                {tool.icon}
+              </div>
+              <h3 style="font-size: 1rem; font-weight: 600; color: var(--color-heading); margin: 0 0 0.4rem;">{tool.name}</h3>
+              <p style="font-size: 0.85rem; color: var(--color-muted); margin: 0; line-height: 1.5;">{tool.description}</p>
+              <div style="margin-top: 1rem; font-size: 0.8rem; font-weight: 500; color: var(--color-accent); display: flex; align-items: center; gap: 0.25rem;">
+                Open tool <span>→</span>
+              </div>
             </div>
-            <h3 class="font-semibold text-gray-900 mb-1">{tool.name}</h3>
-            <p class="text-sm text-gray-500">{tool.description}</p>
           </a>
         ))}
       </div>
     </section>
   ))}
+
+  <!-- Bottom CTA -->
+  <section style="background: var(--color-surface2); border: 1px solid var(--color-border); border-radius: 16px; padding: 2.5rem; text-align: center; margin-top: 2rem;">
+    <h2 style="font-size: 1.25rem; font-weight: 700; color: var(--color-heading); margin: 0 0 0.5rem;">More tools coming soon</h2>
+    <p style="font-size: 0.9rem; color: var(--color-muted); margin: 0;">Base64 encoder, URL encoder, diff checker, color picker and more.</p>
+  </section>
+
 </Base>

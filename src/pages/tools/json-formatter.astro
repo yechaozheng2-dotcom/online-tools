@@ -3,109 +3,145 @@ import Base from '../../layouts/Base.astro';
 ---
 <Base
   title="JSON Formatter & Validator"
-  description="Free online JSON formatter, validator and minifier. Paste your JSON to format it instantly. No data sent to server."
+  description="Free online JSON formatter, validator and minifier. Paste your JSON to instantly format or minify it. Runs entirely in your browser."
 >
-  <div class="mb-6">
-    <h1 class="text-3xl font-bold text-gray-900 mb-2">JSON Formatter & Validator</h1>
-    <p class="text-gray-500">Paste your JSON below to format, validate or minify it. Everything runs in your browser — nothing is sent to any server.</p>
+
+  <!-- Breadcrumb -->
+  <nav style="font-size: 0.8rem; color: var(--color-muted); margin-bottom: 1.5rem;">
+    <a href="/" style="color: var(--color-muted); text-decoration: none;" onmouseover="this.style.color='var(--color-heading)'" onmouseout="this.style.color='var(--color-muted)'">All Tools</a>
+    <span style="margin: 0 0.5rem;">›</span>
+    <span style="color: var(--color-body);">JSON Formatter</span>
+  </nav>
+
+  <!-- Title -->
+  <div style="margin-bottom: 1.75rem;">
+    <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem;">
+      <span style="font-size: 1.5rem; font-family: 'JetBrains Mono', monospace; color: var(--color-accent); font-weight: 600;">{ }</span>
+      <h1 style="font-size: 1.75rem; font-weight: 700; color: var(--color-heading); margin: 0;">JSON Formatter & Validator</h1>
+    </div>
+    <p style="color: var(--color-muted); font-size: 0.9rem; margin: 0;">
+      Format, validate and minify JSON instantly. Everything runs in your browser — nothing is sent to any server.
+    </p>
   </div>
 
-  <!-- Controls -->
-  <div class="flex flex-wrap gap-2 mb-4">
-    <button id="btn-format"
-      class="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition">
-      ✨ Format / Prettify
+  <!-- Toolbar -->
+  <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem;">
+    <button id="btn-format" style="display: flex; align-items: center; gap: 0.35rem; padding: 0.45rem 1rem; background: var(--color-accent); color: #fff; border: none; border-radius: 8px; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: opacity 0.15s;" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">
+      ✨ Format
     </button>
-    <button id="btn-minify"
-      class="px-4 py-2 bg-gray-700 text-white text-sm font-medium rounded-lg hover:bg-gray-800 transition">
+    <button id="btn-minify" style="display: flex; align-items: center; gap: 0.35rem; padding: 0.45rem 1rem; background: var(--color-surface2); color: var(--color-body); border: 1px solid var(--color-border); border-radius: 8px; font-size: 0.85rem; font-weight: 500; cursor: pointer; transition: border-color 0.15s;" onmouseover="this.style.borderColor='var(--color-accent)'" onmouseout="this.style.borderColor='var(--color-border)'">
       ⚡ Minify
     </button>
-    <button id="btn-copy"
-      class="px-4 py-2 bg-white border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition">
+    <button id="btn-copy" style="display: flex; align-items: center; gap: 0.35rem; padding: 0.45rem 1rem; background: var(--color-surface2); color: var(--color-body); border: 1px solid var(--color-border); border-radius: 8px; font-size: 0.85rem; font-weight: 500; cursor: pointer; transition: border-color 0.15s;" onmouseover="this.style.borderColor='var(--color-accent)'" onmouseout="this.style.borderColor='var(--color-border)'">
       📋 Copy
     </button>
-    <button id="btn-clear"
-      class="px-4 py-2 bg-white border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition">
-      🗑️ Clear
+    <button id="btn-clear" style="display: flex; align-items: center; gap: 0.35rem; padding: 0.45rem 1rem; background: var(--color-surface2); color: var(--color-muted); border: 1px solid var(--color-border); border-radius: 8px; font-size: 0.85rem; font-weight: 500; cursor: pointer; transition: border-color 0.15s;" onmouseover="this.style.borderColor='var(--color-danger)'" onmouseout="this.style.borderColor='var(--color-border)'">
+      Clear
     </button>
-    <label class="flex items-center gap-2 text-sm text-gray-600 ml-2">
-      <span>Indent:</span>
-      <select id="indent-size" class="border border-gray-300 rounded px-2 py-1 text-sm">
+    <div style="display: flex; align-items: center; gap: 0.4rem; margin-left: auto;">
+      <label style="font-size: 0.8rem; color: var(--color-muted);">Indent</label>
+      <select id="indent-size" style="background: var(--color-surface2); color: var(--color-body); border: 1px solid var(--color-border); border-radius: 6px; padding: 0.3rem 0.6rem; font-size: 0.8rem;">
         <option value="2" selected>2 spaces</option>
         <option value="4">4 spaces</option>
         <option value="tab">Tab</option>
       </select>
-    </label>
+    </div>
   </div>
 
-  <!-- Editor area -->
-  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-    <div class="flex flex-col">
-      <label class="text-xs font-medium text-gray-400 uppercase tracking-wide mb-1">Input</label>
+  <!-- Editor -->
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; min-height: 480px;">
+    <!-- Input -->
+    <div style="display: flex; flex-direction: column; gap: 0.4rem;">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <span style="font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--color-muted);">Input</span>
+        <span id="input-chars" style="font-size: 0.7rem; color: var(--color-muted);"></span>
+      </div>
       <textarea
         id="input"
-        class="flex-1 font-mono text-sm bg-white border border-gray-300 rounded-xl p-4 min-h-96 resize-none focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent"
-        placeholder='Paste your JSON here, e.g. {"name":"Alice","age":30}'
+        placeholder={'{\n  "paste": "your JSON here"\n}'}
         spellcheck="false"
+        style="flex: 1; font-family: 'JetBrains Mono', monospace; font-size: 0.82rem; line-height: 1.6; background: var(--color-surface); color: var(--color-body); border: 1px solid var(--color-border); border-radius: 12px; padding: 1rem; resize: none; outline: none; min-height: 460px; transition: border-color 0.15s;"
+        onfocus="this.style.borderColor='var(--color-accent)'"
+        onblur="this.style.borderColor='var(--color-border)'"
       ></textarea>
     </div>
-    <div class="flex flex-col">
-      <label class="text-xs font-medium text-gray-400 uppercase tracking-wide mb-1">Output</label>
+
+    <!-- Output -->
+    <div style="display: flex; flex-direction: column; gap: 0.4rem;">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <span style="font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--color-muted);">Output</span>
+        <span id="output-chars" style="font-size: 0.7rem; color: var(--color-muted);"></span>
+      </div>
       <pre
         id="output"
-        class="flex-1 font-mono text-sm bg-gray-900 text-green-400 rounded-xl p-4 min-h-96 overflow-auto whitespace-pre-wrap break-words"
+        style="flex: 1; font-family: 'JetBrains Mono', monospace; font-size: 0.82rem; line-height: 1.6; background: var(--color-surface); border: 1px solid var(--color-border); border-radius: 12px; padding: 1rem; margin: 0; overflow: auto; white-space: pre-wrap; word-break: break-all; min-height: 460px; color: #a8ffb0;"
       ></pre>
     </div>
   </div>
 
   <!-- Status bar -->
-  <div id="status" class="mt-3 text-sm text-gray-500 min-h-5"></div>
+  <div id="status" style="margin-top: 0.75rem; font-size: 0.82rem; min-height: 1.2rem; font-family: 'JetBrains Mono', monospace;"></div>
 
-  <!-- How to use -->
-  <section class="mt-12 bg-white border border-gray-200 rounded-xl p-6">
-    <h2 class="text-xl font-semibold mb-4">How to use</h2>
-    <ol class="space-y-2 text-gray-600 text-sm list-decimal list-inside">
-      <li>Paste your JSON into the <strong>Input</strong> box on the left.</li>
-      <li>Click <strong>Format / Prettify</strong> to make it readable, or <strong>Minify</strong> to compress it.</li>
-      <li>Click <strong>Copy</strong> to copy the output to your clipboard.</li>
-    </ol>
-    <h3 class="text-base font-semibold mt-6 mb-2">Common use cases</h3>
-    <ul class="space-y-1 text-gray-600 text-sm list-disc list-inside">
-      <li>Debugging API responses</li>
-      <li>Validating JSON config files</li>
-      <li>Minifying JSON before shipping to production</li>
-      <li>Reading minified JSON logs</li>
-    </ul>
-  </section>
+  <!-- Info cards -->
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 3rem;">
+    <div style="background: var(--color-surface); border: 1px solid var(--color-border); border-radius: 12px; padding: 1.5rem;">
+      <h2 style="font-size: 1rem; font-weight: 600; color: var(--color-heading); margin: 0 0 0.75rem;">How to use</h2>
+      <ol style="margin: 0; padding-left: 1.25rem; color: var(--color-muted); font-size: 0.875rem; line-height: 2;">
+        <li>Paste your JSON into the <strong style="color: var(--color-body);">Input</strong> box</li>
+        <li>Click <strong style="color: var(--color-body);">Format</strong> to prettify, or <strong style="color: var(--color-body);">Minify</strong> to compress</li>
+        <li>Click <strong style="color: var(--color-body);">Copy</strong> to copy the result</li>
+      </ol>
+    </div>
+    <div style="background: var(--color-surface); border: 1px solid var(--color-border); border-radius: 12px; padding: 1.5rem;">
+      <h2 style="font-size: 1rem; font-weight: 600; color: var(--color-heading); margin: 0 0 0.75rem;">Common use cases</h2>
+      <ul style="margin: 0; padding-left: 1.25rem; color: var(--color-muted); font-size: 0.875rem; line-height: 2;">
+        <li>Debug API responses</li>
+        <li>Validate JSON config files</li>
+        <li>Minify JSON before deploying</li>
+        <li>Read compressed JSON logs</li>
+      </ul>
+    </div>
+  </div>
+
 </Base>
 
 <script>
-  const input = document.getElementById('input') as HTMLTextAreaElement;
+  const input  = document.getElementById('input')  as HTMLTextAreaElement;
   const output = document.getElementById('output') as HTMLPreElement;
   const status = document.getElementById('status') as HTMLDivElement;
-  const indentSelect = document.getElementById('indent-size') as HTMLSelectElement;
+  const inputChars  = document.getElementById('input-chars')  as HTMLSpanElement;
+  const outputChars = document.getElementById('output-chars') as HTMLSpanElement;
+  const indentSel   = document.getElementById('indent-size')  as HTMLSelectElement;
 
   function getIndent(): string | number {
-    const v = indentSelect.value;
+    const v = indentSel.value;
     return v === 'tab' ? '\t' : parseInt(v);
   }
 
-  function setStatus(msg: string, isError = false) {
+  function setStatus(msg: string, ok = true) {
     status.textContent = msg;
-    status.className = `mt-3 text-sm min-h-5 ${isError ? 'text-red-500' : 'text-green-600'}`;
+    status.style.color = ok ? 'var(--color-success)' : 'var(--color-danger)';
+  }
+
+  function updateChars() {
+    const n = input.value.length;
+    inputChars.textContent = n > 0 ? `${n} chars` : '';
   }
 
   function format() {
     const raw = input.value.trim();
-    if (!raw) { output.textContent = ''; setStatus(''); return; }
+    if (!raw) { output.textContent = ''; setStatus(''); outputChars.textContent = ''; return; }
     try {
       const parsed = JSON.parse(raw);
-      output.textContent = JSON.stringify(parsed, null, getIndent());
-      const keys = JSON.stringify(parsed).length;
-      setStatus(`✓ Valid JSON — ${keys} chars`);
+      const result = JSON.stringify(parsed, null, getIndent());
+      output.textContent = result;
+      outputChars.textContent = `${result.length} chars`;
+      const keys = Object.keys(parsed).length;
+      setStatus(`✓ Valid JSON — ${keys} top-level key${keys !== 1 ? 's' : ''}`);
     } catch (e: any) {
       output.textContent = '';
-      setStatus(`✗ Invalid JSON: ${e.message}`, true);
+      outputChars.textContent = '';
+      setStatus(`✗ ${e.message}`, false);
     }
   }
 
@@ -114,10 +150,12 @@ import Base from '../../layouts/Base.astro';
     if (!raw) return;
     try {
       const parsed = JSON.parse(raw);
-      output.textContent = JSON.stringify(parsed);
-      setStatus(`✓ Minified — ${output.textContent.length} chars`);
+      const result = JSON.stringify(parsed);
+      output.textContent = result;
+      outputChars.textContent = `${result.length} chars`;
+      setStatus(`✓ Minified — saved ${raw.length - result.length} chars`);
     } catch (e: any) {
-      setStatus(`✗ Invalid JSON: ${e.message}`, true);
+      setStatus(`✗ ${e.message}`, false);
     }
   }
 
@@ -133,11 +171,11 @@ import Base from '../../layouts/Base.astro';
   document.getElementById('btn-clear')!.addEventListener('click', () => {
     input.value = '';
     output.textContent = '';
-    setStatus('');
+    status.textContent = '';
+    inputChars.textContent = '';
+    outputChars.textContent = '';
   });
 
-  // Auto-format on paste
-  input.addEventListener('paste', () => {
-    setTimeout(format, 50);
-  });
+  input.addEventListener('input', updateChars);
+  input.addEventListener('paste', () => setTimeout(format, 30));
 </script>
