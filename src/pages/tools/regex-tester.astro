@@ -1,0 +1,125 @@
+---
+import Base from '../../layouts/Base.astro';
+---
+<Base title="Regex Tester" description="Free online regex tester. Test and debug regular expressions with live match highlighting. Supports flags: global, case-insensitive, multiline.">
+
+  <nav style="font-size:0.8rem;color:var(--color-muted);margin-bottom:1.5rem;">
+    <a href="/" style="color:var(--color-muted);text-decoration:none;" onmouseover="this.style.color='var(--color-heading)'" onmouseout="this.style.color='var(--color-muted)'">All Tools</a>
+    <span style="margin:0 0.5rem;">›</span>
+    <span style="color:var(--color-body);">Regex Tester</span>
+  </nav>
+
+  <div style="margin-bottom:1.75rem;">
+    <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.5rem;">
+      <span style="font-size:1.4rem;font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--color-accent);">.*</span>
+      <h1 style="font-size:1.75rem;font-weight:700;color:var(--color-heading);margin:0;">Regex Tester</h1>
+    </div>
+    <p style="color:var(--color-muted);font-size:0.9rem;margin:0;">Write a pattern, paste test text and see matches highlighted in real time.</p>
+  </div>
+
+  <!-- Pattern input -->
+  <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:12px;padding:1rem 1.25rem;margin-bottom:1rem;">
+    <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;">
+      <span style="font-family:'JetBrains Mono',monospace;font-size:1.1rem;color:var(--color-muted);">/</span>
+      <input id="pattern" type="text" placeholder="[a-z]+" spellcheck="false"
+        style="flex:1;min-width:200px;font-family:'JetBrains Mono',monospace;font-size:0.95rem;background:transparent;color:var(--color-accent);border:none;outline:none;"
+        oninput="run()" />
+      <span style="font-family:'JetBrains Mono',monospace;font-size:1.1rem;color:var(--color-muted);">/</span>
+      <!-- Flags -->
+      {['g','i','m'].map(f => (
+        <label style="display:flex;align-items:center;gap:0.25rem;font-family:'JetBrains Mono',monospace;font-size:0.85rem;color:var(--color-body);cursor:pointer;">
+          <input type="checkbox" id={`flag-${f}`} checked={f === 'g' || undefined} onchange="run()" style="accent-color:var(--color-accent);" />
+          {f}
+        </label>
+      ))}
+    </div>
+  </div>
+
+  <div id="regex-status" style="font-size:0.82rem;font-family:'JetBrains Mono',monospace;min-height:1.2rem;margin-bottom:0.75rem;"></div>
+
+  <!-- Test string -->
+  <div style="margin-bottom:1rem;">
+    <label style="font-size:0.8rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--color-muted);display:block;margin-bottom:0.4rem;">Test string</label>
+    <textarea id="test-input" rows="6" placeholder="Paste your test text here..." spellcheck="false"
+      style="width:100%;font-family:'JetBrains Mono',monospace;font-size:0.85rem;line-height:1.6;background:var(--color-surface);color:var(--color-body);border:1px solid var(--color-border);border-radius:12px;padding:1rem;resize:vertical;outline:none;transition:border-color 0.15s;"
+      onfocus="this.style.borderColor='var(--color-accent)'" onblur="this.style.borderColor='var(--color-border)'" oninput="run()"></textarea>
+  </div>
+
+  <!-- Highlighted result -->
+  <div style="margin-bottom:1rem;">
+    <label style="font-size:0.8rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--color-muted);display:block;margin-bottom:0.4rem;">Match highlights</label>
+    <div id="highlight" style="font-family:'JetBrains Mono',monospace;font-size:0.85rem;line-height:1.8;background:var(--color-surface);border:1px solid var(--color-border);border-radius:12px;padding:1rem;min-height:80px;white-space:pre-wrap;word-break:break-word;"></div>
+  </div>
+
+  <!-- Match list -->
+  <div id="match-list" style="display:none;">
+    <label style="font-size:0.8rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--color-muted);display:block;margin-bottom:0.5rem;">All matches</label>
+    <div id="matches" style="display:flex;flex-wrap:wrap;gap:0.4rem;"></div>
+  </div>
+</Base>
+
+<script>
+  function escapeHtml(s: string) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  function run() {
+    const pattern = (document.getElementById('pattern') as HTMLInputElement).value;
+    const text    = (document.getElementById('test-input') as HTMLTextAreaElement).value;
+    const status  = document.getElementById('regex-status')!;
+    const hl      = document.getElementById('highlight')!;
+    const matchList = document.getElementById('match-list')!;
+    const matchesEl = document.getElementById('matches')!;
+
+    if (!pattern) {
+      hl.innerHTML = escapeHtml(text);
+      status.textContent = '';
+      matchList.style.display = 'none';
+      return;
+    }
+
+    const flags = ['g','i','m'].filter(f =>
+      (document.getElementById(`flag-${f}`) as HTMLInputElement).checked
+    ).join('');
+
+    let re: RegExp;
+    try {
+      re = new RegExp(pattern, flags.includes('g') ? flags : flags + 'g');
+    } catch (e: any) {
+      status.textContent = `✗ ${e.message}`;
+      status.style.color = 'var(--color-danger)';
+      hl.innerHTML = escapeHtml(text);
+      matchList.style.display = 'none';
+      return;
+    }
+
+    const matches = [...text.matchAll(re)];
+    status.textContent = `✓ ${matches.length} match${matches.length !== 1 ? 'es' : ''}`;
+    status.style.color = matches.length > 0 ? 'var(--color-success)' : 'var(--color-muted)';
+
+    // Highlight
+    let result = '';
+    let last = 0;
+    for (const m of matches) {
+      const start = m.index!;
+      result += escapeHtml(text.slice(last, start));
+      result += `<mark style="background:#6366F133;color:#a5b4fc;border-radius:3px;padding:0 2px;outline:1px solid #6366F166;">${escapeHtml(m[0])}</mark>`;
+      last = start + m[0].length;
+    }
+    result += escapeHtml(text.slice(last));
+    hl.innerHTML = result;
+
+    // Match chips
+    if (matches.length > 0) {
+      matchList.style.display = 'block';
+      matchesEl.innerHTML = matches.slice(0,50).map((m,i) =>
+        `<span style="font-family:'JetBrains Mono',monospace;font-size:0.78rem;background:var(--color-surface2);border:1px solid var(--color-border);border-radius:6px;padding:0.2rem 0.5rem;color:var(--color-body);">${i+1}: ${escapeHtml(m[0])}</span>`
+      ).join('');
+      if (matches.length > 50) matchesEl.innerHTML += `<span style="font-size:0.78rem;color:var(--color-muted);">…and ${matches.length - 50} more</span>`;
+    } else {
+      matchList.style.display = 'none';
+    }
+  }
+
+  (window as any).run = run;
+</script>

@@ -1,0 +1,100 @@
+---
+import Base from '../../layouts/Base.astro';
+---
+<Base title="Base64 Encoder / Decoder" description="Free online Base64 encoder and decoder. Encode or decode Base64 strings instantly in your browser. No data sent to server.">
+
+  <nav style="font-size:0.8rem;color:var(--color-muted);margin-bottom:1.5rem;">
+    <a href="/" style="color:var(--color-muted);text-decoration:none;" onmouseover="this.style.color='var(--color-heading)'" onmouseout="this.style.color='var(--color-muted)'">All Tools</a>
+    <span style="margin:0 0.5rem;">›</span>
+    <span style="color:var(--color-body);">Base64 Encoder / Decoder</span>
+  </nav>
+
+  <div style="margin-bottom:1.75rem;">
+    <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.5rem;">
+      <span style="font-size:1.4rem;font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--color-accent);">64</span>
+      <h1 style="font-size:1.75rem;font-weight:700;color:var(--color-heading);margin:0;">Base64 Encoder / Decoder</h1>
+    </div>
+    <p style="color:var(--color-muted);font-size:0.9rem;margin:0;">Encode text to Base64 or decode Base64 back to text. Runs entirely in your browser.</p>
+  </div>
+
+  <div style="display:flex;gap:0.5rem;margin-bottom:1rem;">
+    <button id="tab-encode" onclick="setMode('encode')" style="padding:0.4rem 1rem;border-radius:8px;font-size:0.85rem;font-weight:600;cursor:pointer;background:var(--color-accent);color:#fff;border:none;">Encode</button>
+    <button id="tab-decode" onclick="setMode('decode')" style="padding:0.4rem 1rem;border-radius:8px;font-size:0.85rem;font-weight:500;cursor:pointer;background:var(--color-surface2);color:var(--color-body);border:1px solid var(--color-border);">Decode</button>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+    <div style="display:flex;flex-direction:column;gap:0.4rem;">
+      <span id="label-in" style="font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--color-muted);">Plain text</span>
+      <textarea id="input" placeholder="Enter text to encode..." spellcheck="false"
+        style="flex:1;font-family:'JetBrains Mono',monospace;font-size:0.82rem;line-height:1.6;background:var(--color-surface);color:var(--color-body);border:1px solid var(--color-border);border-radius:12px;padding:1rem;resize:none;outline:none;min-height:320px;transition:border-color 0.15s;"
+        onfocus="this.style.borderColor='var(--color-accent)'" onblur="this.style.borderColor='var(--color-border)'" oninput="convert()"></textarea>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:0.4rem;">
+      <span id="label-out" style="font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--color-muted);">Base64</span>
+      <pre id="output" style="flex:1;font-family:'JetBrains Mono',monospace;font-size:0.82rem;line-height:1.6;background:var(--color-surface);border:1px solid var(--color-border);border-radius:12px;padding:1rem;margin:0;overflow:auto;white-space:pre-wrap;word-break:break-all;min-height:320px;color:#a8ffb0;"></pre>
+    </div>
+  </div>
+
+  <div style="display:flex;gap:0.5rem;margin-top:0.75rem;align-items:center;">
+    <button onclick="copyOutput()" style="padding:0.4rem 1rem;background:var(--color-surface2);color:var(--color-body);border:1px solid var(--color-border);border-radius:8px;font-size:0.82rem;font-weight:500;cursor:pointer;">📋 Copy</button>
+    <button onclick="clearAll()" style="padding:0.4rem 1rem;background:var(--color-surface2);color:var(--color-muted);border:1px solid var(--color-border);border-radius:8px;font-size:0.82rem;font-weight:500;cursor:pointer;">Clear</button>
+    <span id="status" style="font-size:0.82rem;font-family:'JetBrains Mono',monospace;color:var(--color-success);"></span>
+  </div>
+</Base>
+
+<script>
+  let mode = 'encode';
+
+  function setMode(m: string) {
+    mode = m;
+    const enc = document.getElementById('tab-encode')!;
+    const dec = document.getElementById('tab-decode')!;
+    const active = 'padding:0.4rem 1rem;border-radius:8px;font-size:0.85rem;font-weight:600;cursor:pointer;background:var(--color-accent);color:#fff;border:none;';
+    const idle   = 'padding:0.4rem 1rem;border-radius:8px;font-size:0.85rem;font-weight:500;cursor:pointer;background:var(--color-surface2);color:var(--color-body);border:1px solid var(--color-border);';
+    enc.style.cssText = m === 'encode' ? active : idle;
+    dec.style.cssText = m === 'decode' ? active : idle;
+    document.getElementById('label-in')!.textContent  = m === 'encode' ? 'Plain text' : 'Base64';
+    document.getElementById('label-out')!.textContent = m === 'encode' ? 'Base64' : 'Plain text';
+    convert();
+  }
+
+  function convert() {
+    const val = (document.getElementById('input') as HTMLTextAreaElement).value;
+    const out = document.getElementById('output')!;
+    const status = document.getElementById('status')!;
+    if (!val) { out.textContent = ''; status.textContent = ''; return; }
+    try {
+      if (mode === 'encode') {
+        out.textContent = btoa(unescape(encodeURIComponent(val)));
+      } else {
+        out.textContent = decodeURIComponent(escape(atob(val.trim())));
+      }
+      status.textContent = '';
+      status.style.color = 'var(--color-success)';
+    } catch (e: any) {
+      out.textContent = '';
+      status.textContent = `✗ ${e.message}`;
+      status.style.color = 'var(--color-danger)';
+    }
+  }
+
+  function copyOutput() {
+    const text = document.getElementById('output')!.textContent;
+    if (!text) return;
+    navigator.clipboard.writeText(text).then(() => {
+      const s = document.getElementById('status')!;
+      s.textContent = '✓ Copied!'; s.style.color = 'var(--color-success)';
+    });
+  }
+
+  function clearAll() {
+    (document.getElementById('input') as HTMLTextAreaElement).value = '';
+    document.getElementById('output')!.textContent = '';
+    document.getElementById('status')!.textContent = '';
+  }
+
+  (window as any).setMode = setMode;
+  (window as any).convert = convert;
+  (window as any).copyOutput = copyOutput;
+  (window as any).clearAll = clearAll;
+</script>

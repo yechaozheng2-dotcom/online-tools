@@ -1,0 +1,88 @@
+---
+import Base from '../../layouts/Base.astro';
+---
+<Base title="Number Base Converter" description="Free online number base converter. Convert numbers between binary, octal, decimal and hexadecimal instantly in your browser.">
+
+  <nav style="font-size:0.8rem;color:var(--color-muted);margin-bottom:1.5rem;">
+    <a href="/" style="color:var(--color-muted);text-decoration:none;" onmouseover="this.style.color='var(--color-heading)'" onmouseout="this.style.color='var(--color-muted)'">All Tools</a>
+    <span style="margin:0 0.5rem;">›</span>
+    <span style="color:var(--color-body);">Number Base Converter</span>
+  </nav>
+
+  <div style="margin-bottom:1.75rem;">
+    <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.5rem;">
+      <span style="font-size:1.4rem;font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--color-accent);">01</span>
+      <h1 style="font-size:1.75rem;font-weight:700;color:var(--color-heading);margin:0;">Number Base Converter</h1>
+    </div>
+    <p style="color:var(--color-muted);font-size:0.9rem;margin:0;">Convert between Binary (2), Octal (8), Decimal (10) and Hexadecimal (16).</p>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;max-width:700px;">
+    {[
+      ['decimal',     'Decimal (Base 10)',     '0-9',           '255'],
+      ['hex',         'Hexadecimal (Base 16)', '0-9, a-f',      'FF'],
+      ['binary',      'Binary (Base 2)',       '0, 1',          '11111111'],
+      ['octal',       'Octal (Base 8)',        '0-7',           '377'],
+    ].map(([id, label, hint, placeholder]) => (
+      <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:12px;padding:1.25rem;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;">
+          <label for={id} style="font-size:0.85rem;font-weight:600;color:var(--color-body);">{label}</label>
+          <span style="font-size:0.7rem;color:var(--color-muted);font-family:'JetBrains Mono',monospace;">{hint}</span>
+        </div>
+        <div style="display:flex;gap:0.4rem;align-items:center;">
+          <input id={id} type="text" placeholder={placeholder} spellcheck="false" autocomplete="off"
+            style="flex:1;font-family:'JetBrains Mono',monospace;font-size:1rem;background:var(--color-surface2);color:var(--color-heading);border:1px solid var(--color-border);border-radius:8px;padding:0.5rem 0.75rem;outline:none;transition:border-color 0.15s;"
+            onfocus="this.style.borderColor='var(--color-accent)'" onblur="this.style.borderColor='var(--color-border)'"
+            oninput={`convert('${id}')`} />
+          <button onclick={`copyField('${id}')`} style="padding:0.45rem 0.6rem;background:var(--color-surface2);color:var(--color-muted);border:1px solid var(--color-border);border-radius:8px;font-size:0.75rem;cursor:pointer;" title="Copy" onmouseover="this.style.borderColor='var(--color-accent)'" onmouseout="this.style.borderColor='var(--color-border)'">📋</button>
+        </div>
+      </div>
+    ))}
+  </div>
+
+  <div id="status" style="margin-top:0.75rem;font-size:0.82rem;font-family:'JetBrains Mono',monospace;color:var(--color-muted);min-height:1rem;"></div>
+</Base>
+
+<script>
+  const BASES: Record<string, number> = { decimal: 10, hex: 16, binary: 2, octal: 8 };
+
+  function convert(sourceId: string) {
+    const val = (document.getElementById(sourceId) as HTMLInputElement).value.trim();
+    const status = document.getElementById('status')!;
+    if (!val) {
+      Object.keys(BASES).filter(k => k !== sourceId).forEach(k => {
+        (document.getElementById(k) as HTMLInputElement).value = '';
+      });
+      status.textContent = '';
+      return;
+    }
+    const base = BASES[sourceId];
+    const num = parseInt(val, base);
+    if (isNaN(num)) {
+      status.textContent = `✗ Invalid ${sourceId} value`;
+      status.style.color = 'var(--color-danger)';
+      return;
+    }
+    status.textContent = `= ${num} (decimal)`;
+    status.style.color = 'var(--color-muted)';
+    Object.entries(BASES).forEach(([id, b]) => {
+      if (id === sourceId) return;
+      (document.getElementById(id) as HTMLInputElement).value =
+        id === 'hex' ? num.toString(b).toUpperCase() : num.toString(b);
+    });
+  }
+
+  function copyField(id: string) {
+    const val = (document.getElementById(id) as HTMLInputElement).value;
+    if (!val) return;
+    navigator.clipboard.writeText(val).then(() => {
+      const s = document.getElementById('status')!;
+      s.textContent = `✓ Copied ${id}: ${val}`;
+      s.style.color = 'var(--color-success)';
+      setTimeout(() => { s.textContent = ''; }, 2000);
+    });
+  }
+
+  (window as any).convert = convert;
+  (window as any).copyField = copyField;
+</script>

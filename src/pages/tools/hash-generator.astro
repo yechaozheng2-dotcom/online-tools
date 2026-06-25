@@ -1,0 +1,75 @@
+---
+import Base from '../../layouts/Base.astro';
+---
+<Base title="Hash Generator — SHA-256, SHA-512" description="Free online hash generator. Generate SHA-256, SHA-512 and SHA-1 hashes from any text. Uses Web Crypto API — runs entirely in your browser.">
+
+  <nav style="font-size:0.8rem;color:var(--color-muted);margin-bottom:1.5rem;">
+    <a href="/" style="color:var(--color-muted);text-decoration:none;" onmouseover="this.style.color='var(--color-heading)'" onmouseout="this.style.color='var(--color-muted)'">All Tools</a>
+    <span style="margin:0 0.5rem;">›</span>
+    <span style="color:var(--color-body);">Hash Generator</span>
+  </nav>
+
+  <div style="margin-bottom:1.75rem;">
+    <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.5rem;">
+      <span style="font-size:1.4rem;font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--color-accent);">#</span>
+      <h1 style="font-size:1.75rem;font-weight:700;color:var(--color-heading);margin:0;">Hash Generator</h1>
+    </div>
+    <p style="color:var(--color-muted);font-size:0.9rem;margin:0;">Generate cryptographic hashes using the browser's Web Crypto API. Nothing leaves your device.</p>
+  </div>
+
+  <div style="margin-bottom:1rem;">
+    <label style="font-size:0.8rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--color-muted);display:block;margin-bottom:0.4rem;">Input text</label>
+    <textarea id="input" rows="5" placeholder="Enter text to hash..." spellcheck="false"
+      style="width:100%;font-family:'JetBrains Mono',monospace;font-size:0.85rem;line-height:1.6;background:var(--color-surface);color:var(--color-body);border:1px solid var(--color-border);border-radius:12px;padding:1rem;resize:vertical;outline:none;transition:border-color 0.15s;"
+      onfocus="this.style.borderColor='var(--color-accent)'" onblur="this.style.borderColor='var(--color-border)'" oninput="generateHashes()"></textarea>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:0.75rem;" id="hash-results">
+    {['SHA-1','SHA-256','SHA-512'].map(algo => (
+      <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:12px;padding:1rem 1.25rem;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.4rem;">
+          <span style="font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--color-muted);">{algo}</span>
+          <button onclick={`copyHash('${algo.replace('-','')}')`} style="padding:0.25rem 0.65rem;background:var(--color-surface2);color:var(--color-muted);border:1px solid var(--color-border);border-radius:6px;font-size:0.75rem;cursor:pointer;" onmouseover="this.style.borderColor='var(--color-accent)'" onmouseout="this.style.borderColor='var(--color-border)'">Copy</button>
+        </div>
+        <div id={`hash-${algo.replace('-','')}`} style="font-family:'JetBrains Mono',monospace;font-size:0.8rem;color:#a8ffb0;word-break:break-all;min-height:1.2rem;"></div>
+      </div>
+    ))}
+  </div>
+  <div id="status" style="margin-top:0.5rem;font-size:0.8rem;font-family:'JetBrains Mono',monospace;min-height:1rem;"></div>
+</Base>
+
+<script>
+  async function sha(algo: string, text: string): Promise<string> {
+    const enc = new TextEncoder();
+    const buf = await crypto.subtle.digest(algo, enc.encode(text));
+    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+  }
+
+  async function generateHashes() {
+    const text = (document.getElementById('input') as HTMLTextAreaElement).value;
+    if (!text) {
+      ['SHA1','SHA256','SHA512'].forEach(k => { document.getElementById(`hash-${k}`)!.textContent = ''; });
+      return;
+    }
+    const algos: [string, string][] = [['SHA1','SHA-1'],['SHA256','SHA-256'],['SHA512','SHA-512']];
+    for (const [id, algo] of algos) {
+      const el = document.getElementById(`hash-${id}`)!;
+      el.textContent = 'computing…';
+      el.textContent = await sha(algo, text);
+    }
+  }
+
+  function copyHash(id: string) {
+    const text = document.getElementById(`hash-${id}`)!.textContent || '';
+    if (!text || text === 'computing…') return;
+    navigator.clipboard.writeText(text).then(() => {
+      const s = document.getElementById('status')!;
+      s.textContent = `✓ Copied ${id} hash`;
+      s.style.color = 'var(--color-success)';
+      setTimeout(() => s.textContent = '', 2000);
+    });
+  }
+
+  (window as any).generateHashes = generateHashes;
+  (window as any).copyHash = copyHash;
+</script>
