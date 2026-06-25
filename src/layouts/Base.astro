@@ -1,0 +1,42 @@
+---
+interface Props {
+  title: string;
+  description?: string;
+}
+const { title, description = 'Free online tools — JSON formatter, converters, calculators and more.' } = Astro.props;
+---
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{title} | Online Tools</title>
+  <meta name="description" content={description} />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="sitemap" href="/sitemap-index.xml" />
+  <link rel="stylesheet" href="/styles/global.css" />
+</head>
+<body class="min-h-screen bg-gray-50 text-gray-900">
+  <header class="bg-white border-b border-gray-200">
+    <div class="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
+      <a href="/" class="text-xl font-bold text-indigo-600 hover:text-indigo-700">
+        🛠️ Online Tools
+      </a>
+      <nav class="flex gap-6 text-sm text-gray-600">
+        <a href="/" class="hover:text-indigo-600">All Tools</a>
+        <a href="/tools/json-formatter" class="hover:text-indigo-600">JSON</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="max-w-5xl mx-auto px-4 py-8">
+    <slot />
+  </main>
+
+  <footer class="border-t border-gray-200 mt-16">
+    <div class="max-w-5xl mx-auto px-4 py-6 text-center text-sm text-gray-400">
+      Free online tools — no login, no ads, no tracking.
+    </div>
+  </footer>
+</body>
+</html>

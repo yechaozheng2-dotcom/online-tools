@@ -1,0 +1,143 @@
+---
+import Base from '../../layouts/Base.astro';
+---
+<Base
+  title="JSON Formatter & Validator"
+  description="Free online JSON formatter, validator and minifier. Paste your JSON to format it instantly. No data sent to server."
+>
+  <div class="mb-6">
+    <h1 class="text-3xl font-bold text-gray-900 mb-2">JSON Formatter & Validator</h1>
+    <p class="text-gray-500">Paste your JSON below to format, validate or minify it. Everything runs in your browser — nothing is sent to any server.</p>
+  </div>
+
+  <!-- Controls -->
+  <div class="flex flex-wrap gap-2 mb-4">
+    <button id="btn-format"
+      class="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition">
+      ✨ Format / Prettify
+    </button>
+    <button id="btn-minify"
+      class="px-4 py-2 bg-gray-700 text-white text-sm font-medium rounded-lg hover:bg-gray-800 transition">
+      ⚡ Minify
+    </button>
+    <button id="btn-copy"
+      class="px-4 py-2 bg-white border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition">
+      📋 Copy
+    </button>
+    <button id="btn-clear"
+      class="px-4 py-2 bg-white border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition">
+      🗑️ Clear
+    </button>
+    <label class="flex items-center gap-2 text-sm text-gray-600 ml-2">
+      <span>Indent:</span>
+      <select id="indent-size" class="border border-gray-300 rounded px-2 py-1 text-sm">
+        <option value="2" selected>2 spaces</option>
+        <option value="4">4 spaces</option>
+        <option value="tab">Tab</option>
+      </select>
+    </label>
+  </div>
+
+  <!-- Editor area -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div class="flex flex-col">
+      <label class="text-xs font-medium text-gray-400 uppercase tracking-wide mb-1">Input</label>
+      <textarea
+        id="input"
+        class="flex-1 font-mono text-sm bg-white border border-gray-300 rounded-xl p-4 min-h-96 resize-none focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent"
+        placeholder='Paste your JSON here, e.g. {"name":"Alice","age":30}'
+        spellcheck="false"
+      ></textarea>
+    </div>
+    <div class="flex flex-col">
+      <label class="text-xs font-medium text-gray-400 uppercase tracking-wide mb-1">Output</label>
+      <pre
+        id="output"
+        class="flex-1 font-mono text-sm bg-gray-900 text-green-400 rounded-xl p-4 min-h-96 overflow-auto whitespace-pre-wrap break-words"
+      ></pre>
+    </div>
+  </div>
+
+  <!-- Status bar -->
+  <div id="status" class="mt-3 text-sm text-gray-500 min-h-5"></div>
+
+  <!-- How to use -->
+  <section class="mt-12 bg-white border border-gray-200 rounded-xl p-6">
+    <h2 class="text-xl font-semibold mb-4">How to use</h2>
+    <ol class="space-y-2 text-gray-600 text-sm list-decimal list-inside">
+      <li>Paste your JSON into the <strong>Input</strong> box on the left.</li>
+      <li>Click <strong>Format / Prettify</strong> to make it readable, or <strong>Minify</strong> to compress it.</li>
+      <li>Click <strong>Copy</strong> to copy the output to your clipboard.</li>
+    </ol>
+    <h3 class="text-base font-semibold mt-6 mb-2">Common use cases</h3>
+    <ul class="space-y-1 text-gray-600 text-sm list-disc list-inside">
+      <li>Debugging API responses</li>
+      <li>Validating JSON config files</li>
+      <li>Minifying JSON before shipping to production</li>
+      <li>Reading minified JSON logs</li>
+    </ul>
+  </section>
+</Base>
+
+<script>
+  const input = document.getElementById('input') as HTMLTextAreaElement;
+  const output = document.getElementById('output') as HTMLPreElement;
+  const status = document.getElementById('status') as HTMLDivElement;
+  const indentSelect = document.getElementById('indent-size') as HTMLSelectElement;
+
+  function getIndent(): string | number {
+    const v = indentSelect.value;
+    return v === 'tab' ? '\t' : parseInt(v);
+  }
+
+  function setStatus(msg: string, isError = false) {
+    status.textContent = msg;
+    status.className = `mt-3 text-sm min-h-5 ${isError ? 'text-red-500' : 'text-green-600'}`;
+  }
+
+  function format() {
+    const raw = input.value.trim();
+    if (!raw) { output.textContent = ''; setStatus(''); return; }
+    try {
+      const parsed = JSON.parse(raw);
+      output.textContent = JSON.stringify(parsed, null, getIndent());
+      const keys = JSON.stringify(parsed).length;
+      setStatus(`✓ Valid JSON — ${keys} chars`);
+    } catch (e: any) {
+      output.textContent = '';
+      setStatus(`✗ Invalid JSON: ${e.message}`, true);
+    }
+  }
+
+  function minify() {
+    const raw = input.value.trim();
+    if (!raw) return;
+    try {
+      const parsed = JSON.parse(raw);
+      output.textContent = JSON.stringify(parsed);
+      setStatus(`✓ Minified — ${output.textContent.length} chars`);
+    } catch (e: any) {
+      setStatus(`✗ Invalid JSON: ${e.message}`, true);
+    }
+  }
+
+  document.getElementById('btn-format')!.addEventListener('click', format);
+  document.getElementById('btn-minify')!.addEventListener('click', minify);
+
+  document.getElementById('btn-copy')!.addEventListener('click', () => {
+    const text = output.textContent;
+    if (!text) return;
+    navigator.clipboard.writeText(text).then(() => setStatus('✓ Copied to clipboard!'));
+  });
+
+  document.getElementById('btn-clear')!.addEventListener('click', () => {
+    input.value = '';
+    output.textContent = '';
+    setStatus('');
+  });
+
+  // Auto-format on paste
+  input.addEventListener('paste', () => {
+    setTimeout(format, 50);
+  });
+</script>
