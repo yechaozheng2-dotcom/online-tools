@@ -1,0 +1,144 @@
+---
+import Base from '../../layouts/Base.astro';
+---
+<Base title="Tint & Shade Generator" description="Free online tint and shade generator. Generate 10 tints and 10 shades from any base color. Click to copy HEX values instantly.">
+
+  <nav style="font-size:0.8rem;color:var(--color-muted);margin-bottom:1.5rem;">
+    <a href="/" style="color:var(--color-muted);text-decoration:none;" onmouseover="this.style.color='var(--color-heading)'" onmouseout="this.style.color='var(--color-muted)'">All Tools</a>
+    <span style="margin:0 0.5rem;">›</span>
+    <span style="color:var(--color-body);">Tint & Shade Generator</span>
+  </nav>
+
+  <div style="margin-bottom:1.75rem;">
+    <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.5rem;">
+      <span style="font-size:1.5rem;">🎨</span>
+      <h1 style="font-size:1.75rem;font-weight:700;color:var(--color-heading);margin:0;">Tint & Shade Generator</h1>
+    </div>
+    <p style="color:var(--color-muted);font-size:0.9rem;margin:0;">Pick a base color to generate 10 tints (toward white) and 10 shades (toward black). Click any swatch to copy its HEX value.</p>
+  </div>
+
+  <!-- Color picker row -->
+  <div style="display:flex;align-items:center;gap:1rem;background:var(--color-surface);border:1px solid var(--color-border);border-radius:14px;padding:1.25rem 1.5rem;margin-bottom:1.75rem;flex-wrap:wrap;">
+    <label style="font-size:0.85rem;font-weight:600;color:var(--color-muted);text-transform:uppercase;letter-spacing:0.06em;">Base Color</label>
+    <input type="color" id="base-picker" value="#6366F1"
+      style="width:48px;height:48px;border:none;border-radius:8px;cursor:pointer;background:none;padding:0;"
+      oninput="onBaseChange(this.value)" />
+    <input type="text" id="base-hex" value="#6366F1" maxlength="7" placeholder="#RRGGBB"
+      style="font-family:'JetBrains Mono',monospace;font-size:1rem;text-align:center;background:var(--color-surface2);color:var(--color-body);border:1px solid var(--color-border);border-radius:8px;padding:0.4rem 0.75rem;outline:none;width:110px;transition:border-color 0.15s;"
+      onfocus="this.style.borderColor='var(--color-accent)'" onblur="this.style.borderColor='var(--color-border)'"
+      oninput="onHexInput(this.value)" />
+    <div id="base-preview" style="width:48px;height:48px;border-radius:8px;border:2px solid var(--color-accent);background:#6366F1;flex-shrink:0;"></div>
+    <span id="copy-toast" style="font-size:0.82rem;color:var(--color-success);font-family:'JetBrains Mono',monospace;min-width:140px;"></span>
+  </div>
+
+  <!-- Tints label -->
+  <div style="font-size:0.78rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--color-muted);margin-bottom:0.6rem;">Tints — lighter</div>
+  <div id="tints-row" style="display:flex;gap:6px;margin-bottom:1.5rem;flex-wrap:wrap;"></div>
+
+  <!-- Base row -->
+  <div style="font-size:0.78rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--color-muted);margin-bottom:0.6rem;">Base Color</div>
+  <div id="base-row" style="display:flex;gap:6px;margin-bottom:1.5rem;"></div>
+
+  <!-- Shades label -->
+  <div style="font-size:0.78rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--color-muted);margin-bottom:0.6rem;">Shades — darker</div>
+  <div id="shades-row" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
+
+</Base>
+
+<script>
+  function hexToRgb(hex: string): [number, number, number] {
+    const h = hex.replace('#', '');
+    return [parseInt(h.slice(0,2),16), parseInt(h.slice(2,4),16), parseInt(h.slice(4,6),16)];
+  }
+
+  function rgbToHex(r: number, g: number, b: number): string {
+    return '#' + [r,g,b].map(v => Math.round(Math.max(0,Math.min(255,v))).toString(16).padStart(2,'0')).join('').toUpperCase();
+  }
+
+  function mixWith(r: number, g: number, b: number, targetR: number, targetG: number, targetB: number, ratio: number): string {
+    return rgbToHex(
+      r + (targetR - r) * ratio,
+      g + (targetG - g) * ratio,
+      b + (targetB - b) * ratio
+    );
+  }
+
+  function renderSwatch(hex: string, isBase = false): HTMLElement {
+    const [r,g,b] = hexToRgb(hex);
+    const luminance = (0.299*r + 0.587*g + 0.114*b) / 255;
+    const textColor = luminance > 0.55 ? '#1C1F2E' : '#F1F5F9';
+    const el = document.createElement('div');
+    el.style.cssText = `
+      width:88px;height:80px;border-radius:10px;background:${hex};
+      display:flex;flex-direction:column;align-items:center;justify-content:flex-end;
+      padding:0 4px 8px;cursor:pointer;
+      border:${isBase ? '2px solid var(--color-accent)' : '1px solid rgba(255,255,255,0.06)'};
+      transition:transform 0.1s,box-shadow 0.1s;
+      position:relative;flex-shrink:0;
+    `;
+    const label = document.createElement('span');
+    label.style.cssText = `font-family:'JetBrains Mono',monospace;font-size:0.62rem;font-weight:600;color:${textColor};user-select:none;text-align:center;word-break:break-all;`;
+    label.textContent = hex;
+    el.appendChild(label);
+    if (isBase) {
+      const badge = document.createElement('span');
+      badge.style.cssText = `position:absolute;top:6px;left:50%;transform:translateX(-50%);font-size:0.55rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;background:var(--color-accent);color:#fff;border-radius:4px;padding:1px 5px;`;
+      badge.textContent = 'BASE';
+      el.appendChild(badge);
+    }
+    el.addEventListener('mouseenter', () => { el.style.transform = 'translateY(-3px)'; el.style.boxShadow = '0 6px 20px rgba(0,0,0,0.4)'; });
+    el.addEventListener('mouseleave', () => { el.style.transform = ''; el.style.boxShadow = ''; });
+    el.addEventListener('click', () => {
+      navigator.clipboard.writeText(hex).then(() => {
+        label.textContent = '✓';
+        setTimeout(() => { label.textContent = hex; }, 1200);
+        const toast = document.getElementById('copy-toast')!;
+        toast.textContent = `✓ Copied ${hex}`;
+        setTimeout(() => { toast.textContent = ''; }, 2000);
+      });
+    });
+    return el;
+  }
+
+  function generate(hex: string) {
+    if (!/^#[0-9a-fA-F]{6}$/.test(hex)) return;
+    const [r,g,b] = hexToRgb(hex);
+
+    const tintsEl = document.getElementById('tints-row')!;
+    const shadesEl = document.getElementById('shades-row')!;
+    const baseEl = document.getElementById('base-row')!;
+    tintsEl.innerHTML = '';
+    shadesEl.innerHTML = '';
+    baseEl.innerHTML = '';
+
+    // 10 tints: ratio from 0.9 (very light) to 0.09 (close to base), lightest first
+    for (let i = 10; i >= 1; i--) {
+      const tintHex = mixWith(r, g, b, 255, 255, 255, i * 0.09);
+      tintsEl.appendChild(renderSwatch(tintHex));
+    }
+
+    baseEl.appendChild(renderSwatch(hex, true));
+
+    // 10 shades: ratio from 0.09 (close to base) to 0.9 (very dark), lightest first
+    for (let i = 1; i <= 10; i++) {
+      const shadeHex = mixWith(r, g, b, 0, 0, 0, i * 0.09);
+      shadesEl.appendChild(renderSwatch(shadeHex));
+    }
+
+    document.getElementById('base-preview')!.style.background = hex;
+    (document.getElementById('base-picker') as HTMLInputElement).value = hex;
+    (document.getElementById('base-hex') as HTMLInputElement).value = hex.toUpperCase();
+  }
+
+  function onBaseChange(hex: string) { generate(hex); }
+
+  function onHexInput(val: string) {
+    const normalized = val.startsWith('#') ? val : '#' + val;
+    if (/^#[0-9a-fA-F]{6}$/.test(normalized)) generate(normalized);
+  }
+
+  (window as any).onBaseChange = onBaseChange;
+  (window as any).onHexInput = onHexInput;
+
+  generate('#6366F1');
+</script>

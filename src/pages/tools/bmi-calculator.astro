@@ -1,0 +1,252 @@
+---
+import Base from '../../layouts/Base.astro';
+---
+<Base title="BMI Calculator" description="Free online BMI calculator. Calculate Body Mass Index in metric or imperial units. Shows BMI category, color gauge, and healthy weight range.">
+
+  <nav style="font-size:0.8rem;color:var(--color-muted);margin-bottom:1.5rem;">
+    <a href="/" style="color:var(--color-muted);text-decoration:none;" onmouseover="this.style.color='var(--color-heading)'" onmouseout="this.style.color='var(--color-muted)'">All Tools</a>
+    <span style="margin:0 0.5rem;">›</span>
+    <span style="color:var(--color-body);">BMI Calculator</span>
+  </nav>
+
+  <div style="margin-bottom:1.75rem;">
+    <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.5rem;">
+      <span style="font-size:1.5rem;">⚖️</span>
+      <h1 style="font-size:1.75rem;font-weight:700;color:var(--color-heading);margin:0;">BMI Calculator</h1>
+    </div>
+    <p style="color:var(--color-muted);font-size:0.9rem;margin:0;">Body Mass Index calculator with metric and imperial support.</p>
+  </div>
+
+  <div style="max-width:700px;display:flex;flex-direction:column;gap:1.25rem;">
+
+    <!-- Unit Toggle -->
+    <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:14px;padding:1.5rem;">
+      <div style="font-size:0.78rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--color-muted);margin-bottom:0.75rem;">Units</div>
+      <div style="display:flex;gap:0.5rem;">
+        <button id="btn-metric" onclick="switchUnit('metric')"
+          style="padding:0.45rem 1.1rem;border-radius:8px;border:1px solid var(--color-accent);background:var(--color-accent);color:#fff;font-size:0.85rem;font-weight:600;cursor:pointer;transition:all 0.15s;">
+          Metric (kg / cm)
+        </button>
+        <button id="btn-imperial" onclick="switchUnit('imperial')"
+          style="padding:0.45rem 1.1rem;border-radius:8px;border:1px solid var(--color-border);background:var(--color-surface2);color:var(--color-body);font-size:0.85rem;font-weight:600;cursor:pointer;transition:all 0.15s;">
+          Imperial (lb / ft in)
+        </button>
+      </div>
+    </div>
+
+    <!-- Inputs -->
+    <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:14px;padding:1.5rem;display:flex;flex-direction:column;gap:1.25rem;">
+
+      <!-- Height -->
+      <div id="height-metric" style="display:flex;flex-direction:column;gap:0.5rem;">
+        <label style="font-size:0.8rem;font-weight:600;color:var(--color-muted);text-transform:uppercase;letter-spacing:0.05em;">Height</label>
+        <div style="display:flex;align-items:center;background:var(--color-surface2);border:1px solid var(--color-border);border-radius:8px;overflow:hidden;"
+          onfocusin="this.style.borderColor='var(--color-accent)'" onfocusout="this.style.borderColor='var(--color-border)'">
+          <input id="height-cm" type="number" min="50" max="280" placeholder="175" oninput="bmiCalc()"
+            style="flex:1;background:transparent;color:var(--color-body);border:none;padding:0.65rem 0.75rem;outline:none;font-size:1rem;font-family:'JetBrains Mono',monospace;" />
+          <span style="padding:0 0.75rem;color:var(--color-muted);font-size:0.9rem;">cm</span>
+        </div>
+      </div>
+
+      <div id="height-imperial" style="display:none;flex-direction:column;gap:0.5rem;">
+        <label style="font-size:0.8rem;font-weight:600;color:var(--color-muted);text-transform:uppercase;letter-spacing:0.05em;">Height</label>
+        <div style="display:flex;gap:0.75rem;">
+          <div style="display:flex;align-items:center;background:var(--color-surface2);border:1px solid var(--color-border);border-radius:8px;overflow:hidden;flex:1;"
+            onfocusin="this.style.borderColor='var(--color-accent)'" onfocusout="this.style.borderColor='var(--color-border)'">
+            <input id="height-ft" type="number" min="1" max="9" placeholder="5" oninput="bmiCalc()"
+              style="flex:1;background:transparent;color:var(--color-body);border:none;padding:0.65rem 0.75rem;outline:none;font-size:1rem;font-family:'JetBrains Mono',monospace;" />
+            <span style="padding:0 0.75rem;color:var(--color-muted);font-size:0.9rem;">ft</span>
+          </div>
+          <div style="display:flex;align-items:center;background:var(--color-surface2);border:1px solid var(--color-border);border-radius:8px;overflow:hidden;flex:1;"
+            onfocusin="this.style.borderColor='var(--color-accent)'" onfocusout="this.style.borderColor='var(--color-border)'">
+            <input id="height-in" type="number" min="0" max="11" placeholder="9" oninput="bmiCalc()"
+              style="flex:1;background:transparent;color:var(--color-body);border:none;padding:0.65rem 0.75rem;outline:none;font-size:1rem;font-family:'JetBrains Mono',monospace;" />
+            <span style="padding:0 0.75rem;color:var(--color-muted);font-size:0.9rem;">in</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Weight -->
+      <div id="weight-metric" style="display:flex;flex-direction:column;gap:0.5rem;">
+        <label style="font-size:0.8rem;font-weight:600;color:var(--color-muted);text-transform:uppercase;letter-spacing:0.05em;">Weight</label>
+        <div style="display:flex;align-items:center;background:var(--color-surface2);border:1px solid var(--color-border);border-radius:8px;overflow:hidden;"
+          onfocusin="this.style.borderColor='var(--color-accent)'" onfocusout="this.style.borderColor='var(--color-border)'">
+          <input id="weight-kg" type="number" min="1" max="500" placeholder="70" oninput="bmiCalc()"
+            style="flex:1;background:transparent;color:var(--color-body);border:none;padding:0.65rem 0.75rem;outline:none;font-size:1rem;font-family:'JetBrains Mono',monospace;" />
+          <span style="padding:0 0.75rem;color:var(--color-muted);font-size:0.9rem;">kg</span>
+        </div>
+      </div>
+
+      <div id="weight-imperial" style="display:none;flex-direction:column;gap:0.5rem;">
+        <label style="font-size:0.8rem;font-weight:600;color:var(--color-muted);text-transform:uppercase;letter-spacing:0.05em;">Weight</label>
+        <div style="display:flex;align-items:center;background:var(--color-surface2);border:1px solid var(--color-border);border-radius:8px;overflow:hidden;"
+          onfocusin="this.style.borderColor='var(--color-accent)'" onfocusout="this.style.borderColor='var(--color-border)'">
+          <input id="weight-lb" type="number" min="1" max="1100" placeholder="154" oninput="bmiCalc()"
+            style="flex:1;background:transparent;color:var(--color-body);border:none;padding:0.65rem 0.75rem;outline:none;font-size:1rem;font-family:'JetBrains Mono',monospace;" />
+          <span style="padding:0 0.75rem;color:var(--color-muted);font-size:0.9rem;">lb</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Result -->
+    <div id="result-card" style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:14px;padding:1.75rem;display:flex;flex-direction:column;gap:1.5rem;">
+
+      <div style="display:flex;align-items:flex-end;gap:1.25rem;">
+        <div>
+          <div style="font-size:0.75rem;color:var(--color-muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:0.3rem;">Your BMI</div>
+          <div id="bmi-value" style="font-family:'JetBrains Mono',monospace;font-size:3.5rem;font-weight:700;color:var(--color-muted);line-height:1;">—</div>
+        </div>
+        <div style="padding-bottom:0.5rem;">
+          <div id="bmi-category" style="font-size:1.1rem;font-weight:600;color:var(--color-muted);">Enter your measurements</div>
+        </div>
+      </div>
+
+      <!-- Gauge bar -->
+      <div>
+        <div style="position:relative;height:14px;border-radius:7px;overflow:visible;margin-bottom:0.5rem;background:linear-gradient(to right, #60A5FA 0%, #22C55E 26%, #FACC15 52%, #EF4444 80%, #991B1B 100%);">
+          <div id="gauge-arrow" style="display:none;position:absolute;top:-6px;transform:translateX(-50%);width:4px;height:26px;background:#fff;border-radius:2px;box-shadow:0 0 6px rgba(0,0,0,0.6);"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:0.7rem;color:var(--color-muted);font-family:'JetBrains Mono',monospace;">
+          <span>16</span>
+          <span>18.5</span>
+          <span>25</span>
+          <span>30</span>
+          <span>40</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Reference table -->
+    <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:14px;overflow:hidden;">
+      <div style="padding:1rem 1.5rem;border-bottom:1px solid var(--color-border);font-size:0.78rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--color-muted);">BMI Reference</div>
+      <table style="width:100%;border-collapse:collapse;font-size:0.85rem;">
+        <thead>
+          <tr style="background:var(--color-surface2);">
+            <th style="text-align:left;padding:0.65rem 1.5rem;color:var(--color-muted);font-weight:600;">Category</th>
+            <th style="text-align:left;padding:0.65rem 1rem;color:var(--color-muted);font-weight:600;">BMI Range</th>
+            <th style="text-align:left;padding:0.65rem 1rem;color:var(--color-muted);font-weight:600;"></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr style="border-top:1px solid var(--color-border);">
+            <td style="padding:0.65rem 1.5rem;color:var(--color-body);">Underweight</td>
+            <td style="padding:0.65rem 1rem;font-family:'JetBrains Mono',monospace;color:var(--color-body);">&lt; 18.5</td>
+            <td style="padding:0.65rem 1rem;"><span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#60A5FA;"></span></td>
+          </tr>
+          <tr style="border-top:1px solid var(--color-border);">
+            <td style="padding:0.65rem 1.5rem;color:var(--color-body);">Normal weight</td>
+            <td style="padding:0.65rem 1rem;font-family:'JetBrains Mono',monospace;color:var(--color-body);">18.5 – 24.9</td>
+            <td style="padding:0.65rem 1rem;"><span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#22C55E;"></span></td>
+          </tr>
+          <tr style="border-top:1px solid var(--color-border);">
+            <td style="padding:0.65rem 1.5rem;color:var(--color-body);">Overweight</td>
+            <td style="padding:0.65rem 1rem;font-family:'JetBrains Mono',monospace;color:var(--color-body);">25 – 29.9</td>
+            <td style="padding:0.65rem 1rem;"><span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#FACC15;"></span></td>
+          </tr>
+          <tr style="border-top:1px solid var(--color-border);">
+            <td style="padding:0.65rem 1.5rem;color:var(--color-body);">Obese</td>
+            <td style="padding:0.65rem 1rem;font-family:'JetBrains Mono',monospace;color:var(--color-body);">&ge; 30</td>
+            <td style="padding:0.65rem 1rem;"><span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#EF4444;"></span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+
+</Base>
+
+<script>
+  let unit: 'metric' | 'imperial' = 'metric';
+
+  function switchUnit(u: 'metric' | 'imperial') {
+    unit = u;
+
+    const btnM = document.getElementById('btn-metric') as HTMLButtonElement;
+    const btnI = document.getElementById('btn-imperial') as HTMLButtonElement;
+    const hM = document.getElementById('height-metric') as HTMLElement;
+    const hI = document.getElementById('height-imperial') as HTMLElement;
+    const wM = document.getElementById('weight-metric') as HTMLElement;
+    const wI = document.getElementById('weight-imperial') as HTMLElement;
+
+    if (u === 'metric') {
+      btnM.style.background = 'var(--color-accent)';
+      btnM.style.borderColor = 'var(--color-accent)';
+      btnM.style.color = '#fff';
+      btnI.style.background = 'var(--color-surface2)';
+      btnI.style.borderColor = 'var(--color-border)';
+      btnI.style.color = 'var(--color-body)';
+      hM.style.display = 'flex';
+      hI.style.display = 'none';
+      wM.style.display = 'flex';
+      wI.style.display = 'none';
+    } else {
+      btnI.style.background = 'var(--color-accent)';
+      btnI.style.borderColor = 'var(--color-accent)';
+      btnI.style.color = '#fff';
+      btnM.style.background = 'var(--color-surface2)';
+      btnM.style.borderColor = 'var(--color-border)';
+      btnM.style.color = 'var(--color-body)';
+      hI.style.display = 'flex';
+      hM.style.display = 'none';
+      wI.style.display = 'flex';
+      wM.style.display = 'none';
+    }
+    bmiCalc();
+  }
+
+  function bmiCalc() {
+    let weightKg = 0;
+    let heightM = 0;
+
+    if (unit === 'metric') {
+      weightKg = parseFloat((document.getElementById('weight-kg') as HTMLInputElement).value);
+      const cm = parseFloat((document.getElementById('height-cm') as HTMLInputElement).value);
+      heightM = cm / 100;
+    } else {
+      const lb = parseFloat((document.getElementById('weight-lb') as HTMLInputElement).value);
+      const ft = parseFloat((document.getElementById('height-ft') as HTMLInputElement).value) || 0;
+      const inches = parseFloat((document.getElementById('height-in') as HTMLInputElement).value) || 0;
+      weightKg = lb * 0.453592;
+      heightM = (ft * 12 + inches) * 0.0254;
+    }
+
+    const valEl = document.getElementById('bmi-value') as HTMLElement;
+    const catEl = document.getElementById('bmi-category') as HTMLElement;
+    const arrow = document.getElementById('gauge-arrow') as HTMLElement;
+
+    if (!weightKg || !heightM || heightM === 0) {
+      valEl.textContent = '—';
+      valEl.style.color = 'var(--color-muted)';
+      catEl.textContent = 'Enter your measurements';
+      catEl.style.color = 'var(--color-muted)';
+      arrow.style.display = 'none';
+      return;
+    }
+
+    const bmi = weightKg / (heightM * heightM);
+    valEl.textContent = bmi.toFixed(1);
+
+    let category = '';
+    let color = '';
+    if (bmi < 18.5) { category = 'Underweight'; color = '#60A5FA'; }
+    else if (bmi < 25) { category = 'Normal weight'; color = '#22C55E'; }
+    else if (bmi < 30) { category = 'Overweight'; color = '#FACC15'; }
+    else { category = 'Obese'; color = '#EF4444'; }
+
+    valEl.style.color = color;
+    catEl.textContent = category;
+    catEl.style.color = color;
+
+    // Arrow position: map bmi 16-40 onto 0-100%
+    const clamped = Math.max(16, Math.min(40, bmi));
+    const pct = ((clamped - 16) / (40 - 16)) * 100;
+    arrow.style.display = 'block';
+    arrow.style.left = pct + '%';
+  }
+
+  (window as any).switchUnit = switchUnit;
+  (window as any).bmiCalc = bmiCalc;
+</script>

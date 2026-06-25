@@ -32,6 +32,8 @@ export const tools: Tool[] = [
   { slug: 'percentage-calculator', name: 'Percentage Calculator',    description: 'Calculate percentages, increases and decreases instantly.',             category: 'Math',       icon: '%' },
   { slug: 'roman-numeral',         name: 'Roman Numeral Converter',  description: 'Convert between Arabic numbers and Roman numerals.',                    category: 'Math',       icon: 'Ⅷ' },
   { slug: 'age-calculator',        name: 'Age Calculator',           description: 'Calculate exact age in years, months and days from a birthdate.',       category: 'Math',       icon: '🎂' },
+  { slug: 'tip-calculator',        name: 'Tip Calculator',           description: 'Calculate tip amount and split the bill between any number of people.', category: 'Math',       icon: '🍽' },
+  { slug: 'bmi-calculator',        name: 'BMI Calculator',           description: 'Calculate Body Mass Index with metric and imperial units.',             category: 'Math',       icon: '⚖' },
   // Security
   { slug: 'password-generator',    name: 'Password Generator',       description: 'Generate strong random passwords with custom rules.',                   category: 'Security',   icon: '🔑' },
   { slug: 'hash-generator',        name: 'Hash Generator',           description: 'Generate SHA-256, SHA-512 and SHA-1 hashes from any text.',             category: 'Security',   icon: '#' },
@@ -41,8 +43,12 @@ export const tools: Tool[] = [
   { slug: 'contrast-checker',      name: 'Contrast Checker',         description: 'Check color contrast ratio and WCAG AA/AAA compliance.',                category: 'Design',     icon: '◑' },
   { slug: 'css-shadow-generator',  name: 'CSS Shadow Generator',     description: 'Visually build box-shadow and copy the CSS instantly.',                 category: 'Design',     icon: '□' },
   { slug: 'css-gradient-generator',name: 'CSS Gradient Generator',   description: 'Generate linear and radial CSS gradients visually.',                   category: 'Design',     icon: '▤' },
+  { slug: 'border-radius-generator',name: 'Border Radius Generator', description: 'Visually build CSS border-radius with live preview and copy.',          category: 'Design',     icon: '▢' },
+  { slug: 'tint-shade-generator',  name: 'Tint & Shade Generator',   description: 'Generate tints and shades from any color for design systems.',          category: 'Design',     icon: '◫' },
   // Utilities
   { slug: 'qr-generator',          name: 'QR Code Generator',        description: 'Generate QR codes from any text or URL. Download as PNG.',             category: 'Utilities',  icon: '▦' },
+  { slug: 'countdown-timer',       name: 'Countdown Timer',          description: 'Set a countdown timer with alarm. Runs entirely in your browser.',     category: 'Utilities',  icon: '⏳' },
+  { slug: 'stopwatch',             name: 'Stopwatch',                description: 'Precision stopwatch with lap times. Runs entirely in your browser.',   category: 'Utilities',  icon: '🏁' },
 ];
 
 export const categories = [...new Set(tools.map(t => t.category))];

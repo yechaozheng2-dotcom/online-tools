@@ -1,0 +1,201 @@
+---
+import Base from '../../layouts/Base.astro';
+---
+<Base title="Tip Calculator" description="Free online tip calculator. Calculate tip amount, total bill, and per-person split instantly. Supports custom tip percentages and group splitting.">
+
+  <nav style="font-size:0.8rem;color:var(--color-muted);margin-bottom:1.5rem;">
+    <a href="/" style="color:var(--color-muted);text-decoration:none;" onmouseover="this.style.color='var(--color-heading)'" onmouseout="this.style.color='var(--color-muted)'">All Tools</a>
+    <span style="margin:0 0.5rem;">›</span>
+    <span style="color:var(--color-body);">Tip Calculator</span>
+  </nav>
+
+  <div style="margin-bottom:1.75rem;">
+    <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.5rem;">
+      <span style="font-size:1.5rem;">💰</span>
+      <h1 style="font-size:1.75rem;font-weight:700;color:var(--color-heading);margin:0;">Tip Calculator</h1>
+    </div>
+    <p style="color:var(--color-muted);font-size:0.9rem;margin:0;">Calculate tip, total, and per-person split in real time.</p>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;max-width:860px;">
+
+    <!-- Left: Inputs -->
+    <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:14px;padding:1.75rem;display:flex;flex-direction:column;gap:1.5rem;">
+
+      <!-- Bill Amount -->
+      <div style="display:flex;flex-direction:column;gap:0.5rem;">
+        <label style="font-size:0.8rem;font-weight:600;color:var(--color-muted);text-transform:uppercase;letter-spacing:0.05em;">Bill Amount</label>
+        <div style="display:flex;align-items:center;background:var(--color-surface2);border:1px solid var(--color-border);border-radius:8px;overflow:hidden;"
+          onfocusin="this.style.borderColor='var(--color-accent)'" onfocusout="this.style.borderColor='var(--color-border)'">
+          <span style="padding:0 0.75rem;color:var(--color-muted);font-size:1rem;font-family:'JetBrains Mono',monospace;">$</span>
+          <input id="bill" type="number" min="0" step="0.01" placeholder="0.00" oninput="tipCalc()"
+            style="flex:1;background:transparent;color:var(--color-body);border:none;padding:0.65rem 0.75rem 0.65rem 0;outline:none;font-size:1rem;font-family:'JetBrains Mono',monospace;" />
+        </div>
+      </div>
+
+      <!-- Tip % -->
+      <div style="display:flex;flex-direction:column;gap:0.5rem;">
+        <label style="font-size:0.8rem;font-weight:600;color:var(--color-muted);text-transform:uppercase;letter-spacing:0.05em;">Tip Percentage</label>
+        <!-- Quick buttons -->
+        <div style="display:flex;gap:0.4rem;flex-wrap:wrap;">
+          {[5, 10, 15, 18, 20, 25].map(p => (
+            <button
+              class="tip-btn"
+              data-pct={p}
+              onclick={`setTip(${p})`}
+              style="background:var(--color-surface2);color:var(--color-body);border:1px solid var(--color-border);border-radius:7px;padding:0.35rem 0.65rem;font-size:0.82rem;cursor:pointer;transition:all 0.15s;"
+              onmouseover="this.style.borderColor='var(--color-accent)'" onmouseout="if(!this.classList.contains('active'))this.style.borderColor='var(--color-border)'"
+            >{p}%</button>
+          ))}
+        </div>
+        <!-- Slider + number -->
+        <div style="display:flex;align-items:center;gap:0.75rem;margin-top:0.25rem;">
+          <input id="tipSlider" type="range" min="0" max="50" step="1" value="15"
+            oninput="syncTipInput(this.value);tipCalc()"
+            style="flex:1;accent-color:var(--color-accent);cursor:pointer;" />
+          <div style="display:flex;align-items:center;background:var(--color-surface2);border:1px solid var(--color-border);border-radius:8px;overflow:hidden;width:72px;"
+            onfocusin="this.style.borderColor='var(--color-accent)'" onfocusout="this.style.borderColor='var(--color-border)'">
+            <input id="tipNum" type="number" min="0" max="100" step="1" value="15" oninput="syncTipSlider(this.value);tipCalc()"
+              style="width:40px;background:transparent;color:var(--color-body);border:none;padding:0.5rem 0.4rem;outline:none;font-size:0.9rem;font-family:'JetBrains Mono',monospace;" />
+            <span style="color:var(--color-muted);font-size:0.85rem;padding-right:0.4rem;">%</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Number of People -->
+      <div style="display:flex;flex-direction:column;gap:0.5rem;">
+        <label style="font-size:0.8rem;font-weight:600;color:var(--color-muted);text-transform:uppercase;letter-spacing:0.05em;">Number of People</label>
+        <div style="display:flex;align-items:center;gap:0.75rem;">
+          <button onclick="changePeople(-1)"
+            style="width:36px;height:36px;background:var(--color-surface2);color:var(--color-heading);border:1px solid var(--color-border);border-radius:8px;font-size:1.2rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:border-color 0.15s;"
+            onmouseover="this.style.borderColor='var(--color-accent)'" onmouseout="this.style.borderColor='var(--color-border)'">−</button>
+          <span id="peopleDisplay" style="font-family:'JetBrains Mono',monospace;font-size:1.1rem;color:var(--color-heading);font-weight:700;min-width:24px;text-align:center;">1</span>
+          <button onclick="changePeople(1)"
+            style="width:36px;height:36px;background:var(--color-surface2);color:var(--color-heading);border:1px solid var(--color-border);border-radius:8px;font-size:1.2rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:border-color 0.15s;"
+            onmouseover="this.style.borderColor='var(--color-accent)'" onmouseout="this.style.borderColor='var(--color-border)'">+</button>
+          <input id="peopleHidden" type="hidden" value="1" />
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Right: Results -->
+    <div style="display:flex;flex-direction:column;gap:1rem;">
+
+      <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:14px;padding:1.5rem;display:flex;flex-direction:column;gap:1.25rem;">
+        <div style="font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--color-accent);">Results</div>
+
+        <!-- Tip Amount -->
+        <div style="display:flex;justify-content:space-between;align-items:flex-end;padding-bottom:1rem;border-bottom:1px solid var(--color-border);">
+          <div>
+            <div style="font-size:0.78rem;color:var(--color-muted);margin-bottom:0.2rem;">Tip Amount</div>
+            <div id="r-tip" style="font-family:'JetBrains Mono',monospace;font-size:2rem;font-weight:700;color:var(--color-accent);">$0.00</div>
+          </div>
+        </div>
+
+        <!-- Total -->
+        <div style="display:flex;justify-content:space-between;align-items:flex-end;padding-bottom:1rem;border-bottom:1px solid var(--color-border);">
+          <div>
+            <div style="font-size:0.78rem;color:var(--color-muted);margin-bottom:0.2rem;">Total</div>
+            <div id="r-total" style="font-family:'JetBrains Mono',monospace;font-size:2rem;font-weight:700;color:var(--color-heading);">$0.00</div>
+          </div>
+        </div>
+
+        <!-- Per Person -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+          <div style="background:var(--color-surface2);border-radius:10px;padding:1rem;">
+            <div style="font-size:0.75rem;color:var(--color-muted);margin-bottom:0.35rem;">Per Person Tip</div>
+            <div id="r-per-tip" style="font-family:'JetBrains Mono',monospace;font-size:1.4rem;font-weight:700;color:var(--color-success);">$0.00</div>
+          </div>
+          <div style="background:var(--color-surface2);border-radius:10px;padding:1rem;">
+            <div style="font-size:0.75rem;color:var(--color-muted);margin-bottom:0.35rem;">Per Person Total</div>
+            <div id="r-per-total" style="font-family:'JetBrains Mono',monospace;font-size:1.4rem;font-weight:700;color:var(--color-heading);">$0.00</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+</Base>
+
+<style>
+  @media (max-width: 600px) {
+    div[style*="grid-template-columns:1fr 1fr"] {
+      grid-template-columns: 1fr !important;
+    }
+  }
+  .tip-btn.active {
+    background: var(--color-accent) !important;
+    color: #fff !important;
+    border-color: var(--color-accent) !important;
+  }
+</style>
+
+<script>
+  let people = 1;
+
+  function fmt(n: number): string {
+    return '$' + n.toFixed(2);
+  }
+
+  function tipCalc() {
+    const bill = parseFloat((document.getElementById('bill') as HTMLInputElement).value) || 0;
+    const tipPct = parseFloat((document.getElementById('tipNum') as HTMLInputElement).value) || 0;
+
+    const tipAmt = bill * tipPct / 100;
+    const total = bill + tipAmt;
+    const perTip = tipAmt / people;
+    const perTotal = total / people;
+
+    (document.getElementById('r-tip') as HTMLElement).textContent = fmt(tipAmt);
+    (document.getElementById('r-total') as HTMLElement).textContent = fmt(total);
+    (document.getElementById('r-per-tip') as HTMLElement).textContent = fmt(perTip);
+    (document.getElementById('r-per-total') as HTMLElement).textContent = fmt(perTotal);
+  }
+
+  function syncTipInput(v: string) {
+    (document.getElementById('tipNum') as HTMLInputElement).value = v;
+    highlightBtn(parseInt(v));
+  }
+
+  function syncTipSlider(v: string) {
+    (document.getElementById('tipSlider') as HTMLInputElement).value = v;
+    highlightBtn(parseInt(v));
+  }
+
+  function highlightBtn(val: number) {
+    document.querySelectorAll<HTMLButtonElement>('.tip-btn').forEach(btn => {
+      if (parseInt(btn.dataset.pct || '0') === val) {
+        btn.classList.add('active');
+        btn.style.borderColor = 'var(--color-accent)';
+      } else {
+        btn.classList.remove('active');
+        btn.style.borderColor = 'var(--color-border)';
+      }
+    });
+  }
+
+  function setTip(pct: number) {
+    (document.getElementById('tipNum') as HTMLInputElement).value = String(pct);
+    (document.getElementById('tipSlider') as HTMLInputElement).value = String(pct);
+    highlightBtn(pct);
+    tipCalc();
+  }
+
+  function changePeople(delta: number) {
+    people = Math.max(1, Math.min(20, people + delta));
+    (document.getElementById('peopleDisplay') as HTMLElement).textContent = String(people);
+    tipCalc();
+  }
+
+  (window as any).tipCalc = tipCalc;
+  (window as any).setTip = setTip;
+  (window as any).syncTipInput = syncTipInput;
+  (window as any).syncTipSlider = syncTipSlider;
+  (window as any).changePeople = changePeople;
+
+  // Init highlight
+  highlightBtn(15);
+</script>

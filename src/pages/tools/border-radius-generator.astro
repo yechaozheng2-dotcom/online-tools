@@ -1,0 +1,242 @@
+---
+import Base from '../../layouts/Base.astro';
+---
+<Base title="Border Radius Generator" description="Free CSS border-radius generator. Control each corner independently or link them together. Live preview with copy-ready CSS output.">
+
+  <nav style="font-size:0.8rem;color:var(--color-muted);margin-bottom:1.5rem;">
+    <a href="/" style="color:var(--color-muted);text-decoration:none;" onmouseover="this.style.color='var(--color-heading)'" onmouseout="this.style.color='var(--color-muted)'">All Tools</a>
+    <span style="margin:0 0.5rem;">›</span>
+    <span style="color:var(--color-body);">Border Radius Generator</span>
+  </nav>
+
+  <div style="margin-bottom:1.75rem;">
+    <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.5rem;">
+      <span style="font-size:1.5rem;">⬛</span>
+      <h1 style="font-size:1.75rem;font-weight:700;color:var(--color-heading);margin:0;">Border Radius Generator</h1>
+    </div>
+    <p style="color:var(--color-muted);font-size:0.9rem;margin:0;">Control each corner individually or link them. Get copy-ready CSS instantly.</p>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;max-width:900px;align-items:start;">
+
+    <!-- Left: Controls -->
+    <div style="display:flex;flex-direction:column;gap:1.25rem;">
+
+      <!-- Presets -->
+      <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:14px;padding:1.25rem;">
+        <div style="font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--color-muted);margin-bottom:0.75rem;">Presets</div>
+        <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
+          <button onclick="applyPreset('circle')"
+            style="padding:0.35rem 0.85rem;border-radius:7px;border:1px solid var(--color-border);background:var(--color-surface2);color:var(--color-body);font-size:0.82rem;cursor:pointer;transition:border-color 0.15s;"
+            onmouseover="this.style.borderColor='var(--color-accent)'" onmouseout="this.style.borderColor='var(--color-border)'">Circle</button>
+          <button onclick="applyPreset('pill')"
+            style="padding:0.35rem 0.85rem;border-radius:7px;border:1px solid var(--color-border);background:var(--color-surface2);color:var(--color-body);font-size:0.82rem;cursor:pointer;transition:border-color 0.15s;"
+            onmouseover="this.style.borderColor='var(--color-accent)'" onmouseout="this.style.borderColor='var(--color-border)'">Pill</button>
+          <button onclick="applyPreset('rounded')"
+            style="padding:0.35rem 0.85rem;border-radius:7px;border:1px solid var(--color-border);background:var(--color-surface2);color:var(--color-body);font-size:0.82rem;cursor:pointer;transition:border-color 0.15s;"
+            onmouseover="this.style.borderColor='var(--color-accent)'" onmouseout="this.style.borderColor='var(--color-border)'">Rounded</button>
+          <button onclick="applyPreset('square')"
+            style="padding:0.35rem 0.85rem;border-radius:7px;border:1px solid var(--color-border);background:var(--color-surface2);color:var(--color-body);font-size:0.82rem;cursor:pointer;transition:border-color 0.15s;"
+            onmouseover="this.style.borderColor='var(--color-accent)'" onmouseout="this.style.borderColor='var(--color-border)'">Square</button>
+        </div>
+      </div>
+
+      <!-- Sliders -->
+      <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:14px;padding:1.5rem;display:flex;flex-direction:column;gap:1.1rem;">
+
+        <!-- Link All toggle -->
+        <div style="display:flex;align-items:center;justify-content:space-between;padding-bottom:0.75rem;border-bottom:1px solid var(--color-border);">
+          <span style="font-size:0.82rem;color:var(--color-body);font-weight:500;">Link all corners</span>
+          <label style="display:flex;align-items:center;cursor:pointer;gap:0.5rem;">
+            <span id="link-label" style="font-size:0.75rem;color:var(--color-muted);">Off</span>
+            <div style="position:relative;width:42px;height:22px;" onclick="toggleLink()">
+              <input id="link-toggle" type="checkbox" style="opacity:0;width:0;height:0;position:absolute;" />
+              <div id="link-track" style="position:absolute;inset:0;border-radius:11px;background:var(--color-surface2);border:1px solid var(--color-border);transition:background 0.2s;cursor:pointer;"></div>
+              <div id="link-thumb" style="position:absolute;top:3px;left:3px;width:14px;height:14px;border-radius:50%;background:var(--color-muted);transition:transform 0.2s,background 0.2s;"></div>
+            </div>
+          </label>
+        </div>
+
+        <!-- Top Left -->
+        <div style="display:flex;flex-direction:column;gap:0.3rem;">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <label style="font-size:0.78rem;color:var(--color-muted);">Top Left</label>
+            <span id="tl-val" style="font-family:'JetBrains Mono',monospace;font-size:0.8rem;color:var(--color-accent);">10%</span>
+          </div>
+          <input id="tl" type="range" min="0" max="50" value="10" oninput="onSlider('tl',this.value)"
+            style="width:100%;accent-color:var(--color-accent);cursor:pointer;" />
+        </div>
+
+        <!-- Top Right -->
+        <div style="display:flex;flex-direction:column;gap:0.3rem;">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <label style="font-size:0.78rem;color:var(--color-muted);">Top Right</label>
+            <span id="tr-val" style="font-family:'JetBrains Mono',monospace;font-size:0.8rem;color:var(--color-accent);">10%</span>
+          </div>
+          <input id="tr" type="range" min="0" max="50" value="10" oninput="onSlider('tr',this.value)"
+            style="width:100%;accent-color:var(--color-accent);cursor:pointer;" />
+        </div>
+
+        <!-- Bottom Right -->
+        <div style="display:flex;flex-direction:column;gap:0.3rem;">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <label style="font-size:0.78rem;color:var(--color-muted);">Bottom Right</label>
+            <span id="br-val" style="font-family:'JetBrains Mono',monospace;font-size:0.8rem;color:var(--color-accent);">10%</span>
+          </div>
+          <input id="br" type="range" min="0" max="50" value="10" oninput="onSlider('br',this.value)"
+            style="width:100%;accent-color:var(--color-accent);cursor:pointer;" />
+        </div>
+
+        <!-- Bottom Left -->
+        <div style="display:flex;flex-direction:column;gap:0.3rem;">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <label style="font-size:0.78rem;color:var(--color-muted);">Bottom Left</label>
+            <span id="bl-val" style="font-family:'JetBrains Mono',monospace;font-size:0.8rem;color:var(--color-accent);">10%</span>
+          </div>
+          <input id="bl" type="range" min="0" max="50" value="10" oninput="onSlider('bl',this.value)"
+            style="width:100%;accent-color:var(--color-accent);cursor:pointer;" />
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Right: Preview + Output -->
+    <div style="display:flex;flex-direction:column;gap:1.25rem;">
+
+      <!-- Preview -->
+      <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:14px;padding:2rem;display:flex;flex-direction:column;align-items:center;gap:1rem;">
+        <div style="font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--color-muted);">Preview</div>
+        <div style="width:180px;height:180px;display:flex;align-items:center;justify-content:center;">
+          <div id="preview-box"
+            style="width:160px;height:160px;background:linear-gradient(135deg,var(--color-accent),#818CF8);border-radius:10% 10% 10% 10%;transition:border-radius 0.15s;">
+          </div>
+        </div>
+      </div>
+
+      <!-- CSS Output -->
+      <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:14px;padding:1.5rem;display:flex;flex-direction:column;gap:0.75rem;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div style="font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--color-muted);">CSS Output</div>
+          <button id="copy-btn" onclick="copyCSS()"
+            style="padding:0.3rem 0.75rem;background:var(--color-accent);color:#fff;border:none;border-radius:6px;font-size:0.78rem;font-weight:600;cursor:pointer;transition:opacity 0.15s;"
+            onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">Copy</button>
+        </div>
+        <div style="background:var(--color-surface2);border:1px solid var(--color-border);border-radius:8px;padding:1rem;">
+          <pre id="css-output" style="font-family:'JetBrains Mono',monospace;font-size:0.82rem;color:var(--color-body);margin:0;white-space:pre-wrap;word-break:break-all;">border-radius: 10% 10% 10% 10%;</pre>
+        </div>
+        <div style="background:var(--color-surface2);border:1px solid var(--color-border);border-radius:8px;padding:1rem;">
+          <div style="font-size:0.7rem;color:var(--color-muted);margin-bottom:0.35rem;">Shorthand (if uniform)</div>
+          <pre id="css-shorthand" style="font-family:'JetBrains Mono',monospace;font-size:0.82rem;color:var(--color-body);margin:0;">border-radius: 10%;</pre>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</Base>
+
+<style>
+  @media (max-width: 640px) {
+    div[style*="grid-template-columns:1fr 1fr"] {
+      grid-template-columns: 1fr !important;
+    }
+  }
+</style>
+
+<script>
+  let linked = false;
+
+  const corners = ['tl', 'tr', 'br', 'bl'] as const;
+  type Corner = typeof corners[number];
+
+  function getVal(id: Corner): number {
+    return parseInt((document.getElementById(id) as HTMLInputElement).value);
+  }
+
+  function setVal(id: Corner, v: number) {
+    (document.getElementById(id) as HTMLInputElement).value = String(v);
+    (document.getElementById(id + '-val') as HTMLElement).textContent = v + '%';
+  }
+
+  function updateOutput() {
+    const tl = getVal('tl');
+    const tr = getVal('tr');
+    const br = getVal('br');
+    const bl = getVal('bl');
+
+    const radius = `${tl}% ${tr}% ${br}% ${bl}%`;
+    const box = document.getElementById('preview-box') as HTMLElement;
+    box.style.borderRadius = radius;
+
+    const full = `border-radius: ${tl}% ${tr}% ${br}% ${bl}%;`;
+    (document.getElementById('css-output') as HTMLElement).textContent = full;
+
+    let short = '';
+    if (tl === tr && tr === br && br === bl) {
+      short = `border-radius: ${tl}%;`;
+    } else if (tl === br && tr === bl) {
+      short = `border-radius: ${tl}% ${tr}%;`;
+    } else {
+      short = full;
+    }
+    (document.getElementById('css-shorthand') as HTMLElement).textContent = short;
+  }
+
+  function onSlider(id: Corner, v: string) {
+    const n = parseInt(v);
+    (document.getElementById(id + '-val') as HTMLElement).textContent = n + '%';
+    if (linked) {
+      corners.forEach(c => setVal(c, n));
+    }
+    updateOutput();
+  }
+
+  function toggleLink() {
+    linked = !linked;
+    const track = document.getElementById('link-track') as HTMLElement;
+    const thumb = document.getElementById('link-thumb') as HTMLElement;
+    const label = document.getElementById('link-label') as HTMLElement;
+    if (linked) {
+      track.style.background = 'var(--color-accent)';
+      thumb.style.transform = 'translateX(20px)';
+      thumb.style.background = '#fff';
+      label.textContent = 'On';
+      // Sync all to tl value
+      const v = getVal('tl');
+      corners.forEach(c => setVal(c, v));
+      updateOutput();
+    } else {
+      track.style.background = 'var(--color-surface2)';
+      thumb.style.transform = 'translateX(0)';
+      thumb.style.background = 'var(--color-muted)';
+      label.textContent = 'Off';
+    }
+  }
+
+  function applyPreset(name: string) {
+    const presets: Record<string, [number, number, number, number]> = {
+      circle:  [50, 50, 50, 50],
+      pill:    [50, 50, 50, 50],
+      rounded: [12, 12, 12, 12],
+      square:  [0,  0,  0,  0],
+    };
+    const [tl, tr, br, bl] = presets[name];
+    setVal('tl', tl); setVal('tr', tr); setVal('br', br); setVal('bl', bl);
+    updateOutput();
+  }
+
+  function copyCSS() {
+    const text = (document.getElementById('css-output') as HTMLElement).textContent || '';
+    navigator.clipboard.writeText(text).then(() => {
+      const btn = document.getElementById('copy-btn') as HTMLButtonElement;
+      const orig = btn.textContent;
+      btn.textContent = 'Copied!';
+      setTimeout(() => { btn.textContent = orig; }, 1500);
+    });
+  }
+
+  (window as any).onSlider = onSlider;
+  (window as any).toggleLink = toggleLink;
+  (window as any).applyPreset = applyPreset;
+  (window as any).copyCSS = copyCSS;
+</script>

@@ -1,0 +1,200 @@
+---
+import Base from '../../layouts/Base.astro';
+---
+<Base title="Stopwatch" description="Free online stopwatch with lap times. Millisecond precision using performance.now(). Highlights fastest and slowest laps automatically.">
+
+  <nav style="font-size:0.8rem;color:var(--color-muted);margin-bottom:1.5rem;">
+    <a href="/" style="color:var(--color-muted);text-decoration:none;" onmouseover="this.style.color='var(--color-heading)'" onmouseout="this.style.color='var(--color-muted)'">All Tools</a>
+    <span style="margin:0 0.5rem;">›</span>
+    <span style="color:var(--color-body);">Stopwatch</span>
+  </nav>
+
+  <div style="margin-bottom:1.75rem;">
+    <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.5rem;">
+      <span style="font-size:1.5rem;">⏱</span>
+      <h1 style="font-size:1.75rem;font-weight:700;color:var(--color-heading);margin:0;">Stopwatch</h1>
+    </div>
+    <p style="color:var(--color-muted);font-size:0.9rem;margin:0;">Millisecond-precision stopwatch with lap tracking. Fastest lap highlighted in green, slowest in red.</p>
+  </div>
+
+  <div style="max-width:560px;margin:0 auto;">
+    <!-- Main display -->
+    <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:18px;padding:2rem;text-align:center;margin-bottom:1rem;">
+      <div id="sw-display" style="font-family:'JetBrains Mono',monospace;font-size:4.5rem;font-weight:700;color:var(--color-heading);letter-spacing:0.04em;line-height:1;margin-bottom:1.75rem;">00:00<span style="font-size:2.5rem;color:var(--color-muted);">.000</span></div>
+
+      <!-- Controls -->
+      <div style="display:flex;gap:0.75rem;justify-content:center;">
+        <button id="btn-startstop" onclick="swToggle()"
+          style="min-width:110px;padding:0.65rem 1.5rem;background:var(--color-accent);color:#fff;border:none;border-radius:10px;font-size:1rem;font-weight:600;cursor:pointer;transition:opacity 0.15s;"
+          onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">Start</button>
+        <button id="btn-lap" onclick="swLap()" disabled
+          style="min-width:90px;padding:0.65rem 1.5rem;background:var(--color-surface2);color:var(--color-muted);border:1px solid var(--color-border);border-radius:10px;font-size:1rem;font-weight:600;cursor:not-allowed;opacity:0.5;transition:border-color 0.15s;">Lap</button>
+        <button onclick="swReset()"
+          style="min-width:90px;padding:0.65rem 1.5rem;background:var(--color-surface2);color:var(--color-body);border:1px solid var(--color-border);border-radius:10px;font-size:1rem;font-weight:600;cursor:pointer;"
+          onmouseover="this.style.borderColor='var(--color-accent)'" onmouseout="this.style.borderColor='var(--color-border)'">Reset</button>
+      </div>
+    </div>
+
+    <!-- Lap list -->
+    <div id="lap-section" style="display:none;background:var(--color-surface);border:1px solid var(--color-border);border-radius:14px;overflow:hidden;">
+      <div style="display:grid;grid-template-columns:2.5rem 1fr 1fr;gap:0;border-bottom:1px solid var(--color-border);">
+        <div style="padding:0.6rem 0.75rem;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--color-muted);">#</div>
+        <div style="padding:0.6rem 0.75rem;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--color-muted);">Lap Time</div>
+        <div style="padding:0.6rem 0.75rem;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--color-muted);">Total</div>
+      </div>
+      <div id="lap-list"></div>
+    </div>
+  </div>
+
+</Base>
+
+<script>
+  interface LapEntry {
+    index: number;
+    lapMs: number;
+    totalMs: number;
+  }
+
+  let startTime = 0;
+  let elapsed = 0;
+  let isRunning = false;
+  let rafId = 0;
+  let laps: LapEntry[] = [];
+  let lastLapTotal = 0;
+
+  function formatMs(ms: number): string {
+    const totalMs = Math.floor(ms);
+    const mins = Math.floor(totalMs / 60000);
+    const secs = Math.floor((totalMs % 60000) / 1000);
+    const millis = totalMs % 1000;
+    return `${String(mins).padStart(2,'0')}:${String(secs).padStart(2,'0')}.${String(millis).padStart(3,'0')}`;
+  }
+
+  function formatDisplay(ms: number): string {
+    const totalMs = Math.floor(ms);
+    const mins = Math.floor(totalMs / 60000);
+    const secs = Math.floor((totalMs % 60000) / 1000);
+    const millis = totalMs % 1000;
+    return `${String(mins).padStart(2,'0')}:${String(secs).padStart(2,'0')}|||${String(millis).padStart(3,'0')}`;
+  }
+
+  function renderDisplay(ms: number) {
+    const parts = formatDisplay(ms).split('|||');
+    document.getElementById('sw-display')!.innerHTML =
+      `${parts[0]}<span style="font-size:2.5rem;color:var(--color-muted);">.${parts[1]}</span>`;
+  }
+
+  function tick() {
+    if (!isRunning) return;
+    const now = performance.now();
+    const current = elapsed + (now - startTime);
+    renderDisplay(current);
+    rafId = requestAnimationFrame(tick);
+  }
+
+  function swToggle() {
+    if (isRunning) {
+      // Pause
+      const now = performance.now();
+      elapsed += now - startTime;
+      isRunning = false;
+      cancelAnimationFrame(rafId);
+      const btn = document.getElementById('btn-startstop')!;
+      btn.textContent = 'Start';
+      btn.style.background = 'var(--color-accent)';
+      const lapBtn = document.getElementById('btn-lap') as HTMLButtonElement;
+      lapBtn.disabled = true;
+      lapBtn.style.opacity = '0.5';
+      lapBtn.style.cursor = 'not-allowed';
+      lapBtn.onmouseover = null;
+      lapBtn.onmouseout = null;
+    } else {
+      // Start / Resume
+      startTime = performance.now();
+      isRunning = true;
+      rafId = requestAnimationFrame(tick);
+      const btn = document.getElementById('btn-startstop')!;
+      btn.textContent = 'Stop';
+      btn.style.background = 'var(--color-danger)';
+      const lapBtn = document.getElementById('btn-lap') as HTMLButtonElement;
+      lapBtn.disabled = false;
+      lapBtn.style.opacity = '1';
+      lapBtn.style.cursor = 'pointer';
+      lapBtn.onmouseover = () => { lapBtn.style.borderColor = 'var(--color-accent)'; };
+      lapBtn.onmouseout = () => { lapBtn.style.borderColor = 'var(--color-border)'; };
+    }
+  }
+
+  function swLap() {
+    if (!isRunning) return;
+    const now = performance.now();
+    const totalMs = elapsed + (now - startTime);
+    const lapMs = totalMs - lastLapTotal;
+    lastLapTotal = totalMs;
+    laps.unshift({ index: laps.length + 1, lapMs, totalMs });
+    renderLaps();
+    document.getElementById('lap-section')!.style.display = '';
+  }
+
+  function renderLaps() {
+    const list = document.getElementById('lap-list')!;
+    if (laps.length < 2) {
+      list.innerHTML = laps.map(l => lapRow(l, false, false)).join('');
+      return;
+    }
+    const lapTimes = laps.map(l => l.lapMs);
+    const minLap = Math.min(...lapTimes);
+    const maxLap = Math.max(...lapTimes);
+    list.innerHTML = laps.map(l => lapRow(
+      l,
+      l.lapMs === minLap,
+      l.lapMs === maxLap
+    )).join('');
+  }
+
+  function lapRow(l: LapEntry, isFastest: boolean, isSlowest: boolean): string {
+    let bg = 'transparent';
+    let color = 'var(--color-body)';
+    let badge = '';
+    if (isFastest) {
+      bg = 'rgba(34,197,94,0.08)';
+      color = 'var(--color-success)';
+      badge = '<span style="font-size:0.6rem;font-weight:700;text-transform:uppercase;background:rgba(34,197,94,0.15);color:var(--color-success);border-radius:4px;padding:1px 5px;margin-left:6px;">Best</span>';
+    } else if (isSlowest) {
+      bg = 'rgba(239,68,68,0.08)';
+      color = 'var(--color-danger)';
+      badge = '<span style="font-size:0.6rem;font-weight:700;text-transform:uppercase;background:rgba(239,68,68,0.15);color:var(--color-danger);border-radius:4px;padding:1px 5px;margin-left:6px;">Slow</span>';
+    }
+    return `
+      <div style="display:grid;grid-template-columns:2.5rem 1fr 1fr;gap:0;border-bottom:1px solid var(--color-border);background:${bg};">
+        <div style="padding:0.55rem 0.75rem;font-family:'JetBrains Mono',monospace;font-size:0.8rem;color:var(--color-muted);">${l.index}</div>
+        <div style="padding:0.55rem 0.75rem;font-family:'JetBrains Mono',monospace;font-size:0.85rem;color:${color};display:flex;align-items:center;">${formatMs(l.lapMs)}${badge}</div>
+        <div style="padding:0.55rem 0.75rem;font-family:'JetBrains Mono',monospace;font-size:0.85rem;color:var(--color-muted);">${formatMs(l.totalMs)}</div>
+      </div>`;
+  }
+
+  function swReset() {
+    cancelAnimationFrame(rafId);
+    isRunning = false;
+    elapsed = 0;
+    startTime = 0;
+    lastLapTotal = 0;
+    laps = [];
+    renderDisplay(0);
+    document.getElementById('lap-section')!.style.display = 'none';
+    document.getElementById('lap-list')!.innerHTML = '';
+    const btn = document.getElementById('btn-startstop')!;
+    btn.textContent = 'Start';
+    btn.style.background = 'var(--color-accent)';
+    const lapBtn = document.getElementById('btn-lap') as HTMLButtonElement;
+    lapBtn.disabled = true;
+    lapBtn.style.opacity = '0.5';
+    lapBtn.style.cursor = 'not-allowed';
+    lapBtn.onmouseover = null;
+    lapBtn.onmouseout = null;
+  }
+
+  (window as any).swToggle = swToggle;
+  (window as any).swLap = swLap;
+  (window as any).swReset = swReset;
+</script>

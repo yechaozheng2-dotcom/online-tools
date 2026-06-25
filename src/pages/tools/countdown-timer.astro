@@ -1,0 +1,240 @@
+---
+import Base from '../../layouts/Base.astro';
+---
+<Base title="Countdown Timer" description="Free online countdown timer. Set hours, minutes and seconds, use quick presets like Pomodoro 25 min, and get an audio alert when the timer ends.">
+
+  <nav style="font-size:0.8rem;color:var(--color-muted);margin-bottom:1.5rem;">
+    <a href="/" style="color:var(--color-muted);text-decoration:none;" onmouseover="this.style.color='var(--color-heading)'" onmouseout="this.style.color='var(--color-muted)'">All Tools</a>
+    <span style="margin:0 0.5rem;">›</span>
+    <span style="color:var(--color-body);">Countdown Timer</span>
+  </nav>
+
+  <div style="margin-bottom:1.75rem;">
+    <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.5rem;">
+      <span style="font-size:1.5rem;">⏱️</span>
+      <h1 style="font-size:1.75rem;font-weight:700;color:var(--color-heading);margin:0;">Countdown Timer</h1>
+    </div>
+    <p style="color:var(--color-muted);font-size:0.9rem;margin:0;">Set a duration and count down with audio alert. Perfect for Pomodoro sessions, cooking, and workouts.</p>
+  </div>
+
+  <div id="timer-card" style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:18px;padding:2rem;max-width:520px;margin:0 auto;">
+
+    <!-- Quick presets -->
+    <div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-bottom:1.5rem;justify-content:center;">
+      <button onclick="setPreset(1*60)" style="padding:0.35rem 0.8rem;background:var(--color-surface2);color:var(--color-body);border:1px solid var(--color-border);border-radius:20px;font-size:0.82rem;cursor:pointer;transition:border-color 0.15s,color 0.15s;" onmouseover="this.style.borderColor='var(--color-accent)';this.style.color='var(--color-accent)'" onmouseout="this.style.borderColor='var(--color-border)';this.style.color='var(--color-body)'">1 min</button>
+      <button onclick="setPreset(5*60)" style="padding:0.35rem 0.8rem;background:var(--color-surface2);color:var(--color-body);border:1px solid var(--color-border);border-radius:20px;font-size:0.82rem;cursor:pointer;transition:border-color 0.15s,color 0.15s;" onmouseover="this.style.borderColor='var(--color-accent)';this.style.color='var(--color-accent)'" onmouseout="this.style.borderColor='var(--color-border)';this.style.color='var(--color-body)'">5 min</button>
+      <button onclick="setPreset(10*60)" style="padding:0.35rem 0.8rem;background:var(--color-surface2);color:var(--color-body);border:1px solid var(--color-border);border-radius:20px;font-size:0.82rem;cursor:pointer;transition:border-color 0.15s,color 0.15s;" onmouseover="this.style.borderColor='var(--color-accent)';this.style.color='var(--color-accent)'" onmouseout="this.style.borderColor='var(--color-border)';this.style.color='var(--color-body)'">10 min</button>
+      <button onclick="setPreset(25*60)" style="padding:0.35rem 0.8rem;background:var(--color-surface2);color:var(--color-body);border:1px solid var(--color-border);border-radius:20px;font-size:0.82rem;cursor:pointer;transition:border-color 0.15s,color 0.15s;" onmouseover="this.style.borderColor='var(--color-accent)';this.style.color='var(--color-accent)'" onmouseout="this.style.borderColor='var(--color-border)';this.style.color='var(--color-body)'">🍅 25 min</button>
+      <button onclick="setPreset(60*60)" style="padding:0.35rem 0.8rem;background:var(--color-surface2);color:var(--color-body);border:1px solid var(--color-border);border-radius:20px;font-size:0.82rem;cursor:pointer;transition:border-color 0.15s,color 0.15s;" onmouseover="this.style.borderColor='var(--color-accent)';this.style.color='var(--color-accent)'" onmouseout="this.style.borderColor='var(--color-border)';this.style.color='var(--color-body)'">1 hour</button>
+    </div>
+
+    <!-- Input row -->
+    <div style="display:flex;align-items:flex-end;justify-content:center;gap:0.5rem;margin-bottom:1.5rem;">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:0.35rem;">
+        <label style="font-size:0.7rem;font-weight:600;text-transform:uppercase;letter-spacing:0.07em;color:var(--color-muted);">Hours</label>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:3px;">
+          <button onclick="adjustInput('h-input',1)" style="width:32px;height:24px;background:var(--color-surface2);color:var(--color-muted);border:1px solid var(--color-border);border-radius:5px;font-size:0.9rem;cursor:pointer;line-height:1;" onmouseover="this.style.color='var(--color-accent)'" onmouseout="this.style.color='var(--color-muted)'">+</button>
+          <input id="h-input" type="number" min="0" max="99" value="0"
+            style="width:64px;height:42px;text-align:center;font-family:'JetBrains Mono',monospace;font-size:1.4rem;font-weight:700;background:var(--color-surface2);color:var(--color-body);border:1px solid var(--color-border);border-radius:8px;outline:none;padding:0;"
+            onfocus="this.style.borderColor='var(--color-accent)'" onblur="this.style.borderColor='var(--color-border)'" />
+          <button onclick="adjustInput('h-input',-1)" style="width:32px;height:24px;background:var(--color-surface2);color:var(--color-muted);border:1px solid var(--color-border);border-radius:5px;font-size:0.9rem;cursor:pointer;line-height:1;" onmouseover="this.style.color='var(--color-accent)'" onmouseout="this.style.color='var(--color-muted)'">-</button>
+        </div>
+      </div>
+      <span style="font-size:2rem;font-weight:700;color:var(--color-muted);margin-bottom:10px;">:</span>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:0.35rem;">
+        <label style="font-size:0.7rem;font-weight:600;text-transform:uppercase;letter-spacing:0.07em;color:var(--color-muted);">Min</label>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:3px;">
+          <button onclick="adjustInput('m-input',1)" style="width:32px;height:24px;background:var(--color-surface2);color:var(--color-muted);border:1px solid var(--color-border);border-radius:5px;font-size:0.9rem;cursor:pointer;line-height:1;" onmouseover="this.style.color='var(--color-accent)'" onmouseout="this.style.color='var(--color-muted)'">+</button>
+          <input id="m-input" type="number" min="0" max="59" value="0"
+            style="width:64px;height:42px;text-align:center;font-family:'JetBrains Mono',monospace;font-size:1.4rem;font-weight:700;background:var(--color-surface2);color:var(--color-body);border:1px solid var(--color-border);border-radius:8px;outline:none;padding:0;"
+            onfocus="this.style.borderColor='var(--color-accent)'" onblur="this.style.borderColor='var(--color-border)'" />
+          <button onclick="adjustInput('m-input',-1)" style="width:32px;height:24px;background:var(--color-surface2);color:var(--color-muted);border:1px solid var(--color-border);border-radius:5px;font-size:0.9rem;cursor:pointer;line-height:1;" onmouseover="this.style.color='var(--color-accent)'" onmouseout="this.style.color='var(--color-muted)'">-</button>
+        </div>
+      </div>
+      <span style="font-size:2rem;font-weight:700;color:var(--color-muted);margin-bottom:10px;">:</span>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:0.35rem;">
+        <label style="font-size:0.7rem;font-weight:600;text-transform:uppercase;letter-spacing:0.07em;color:var(--color-muted);">Sec</label>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:3px;">
+          <button onclick="adjustInput('s-input',1)" style="width:32px;height:24px;background:var(--color-surface2);color:var(--color-muted);border:1px solid var(--color-border);border-radius:5px;font-size:0.9rem;cursor:pointer;line-height:1;" onmouseover="this.style.color='var(--color-accent)'" onmouseout="this.style.color='var(--color-muted)'">+</button>
+          <input id="s-input" type="number" min="0" max="59" value="0"
+            style="width:64px;height:42px;text-align:center;font-family:'JetBrains Mono',monospace;font-size:1.4rem;font-weight:700;background:var(--color-surface2);color:var(--color-body);border:1px solid var(--color-border);border-radius:8px;outline:none;padding:0;"
+            onfocus="this.style.borderColor='var(--color-accent)'" onblur="this.style.borderColor='var(--color-border)'" />
+          <button onclick="adjustInput('s-input',-1)" style="width:32px;height:24px;background:var(--color-surface2);color:var(--color-muted);border:1px solid var(--color-border);border-radius:5px;font-size:0.9rem;cursor:pointer;line-height:1;" onmouseover="this.style.color='var(--color-accent)'" onmouseout="this.style.color='var(--color-muted)'">-</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Big display -->
+    <div id="big-display" style="font-family:'JetBrains Mono',monospace;font-size:4.5rem;font-weight:700;color:var(--color-heading);text-align:center;letter-spacing:0.05em;margin-bottom:1rem;transition:color 0.2s;">00:00:00</div>
+
+    <!-- Progress bar -->
+    <div style="height:6px;background:var(--color-surface2);border-radius:3px;margin-bottom:1.5rem;overflow:hidden;">
+      <div id="progress-bar" style="height:100%;width:100%;background:var(--color-accent);border-radius:3px;transition:width 0.5s linear;"></div>
+    </div>
+
+    <!-- Controls -->
+    <div style="display:flex;gap:0.75rem;justify-content:center;">
+      <button id="btn-start" onclick="timerStart()" style="padding:0.6rem 1.75rem;background:var(--color-accent);color:#fff;border:none;border-radius:10px;font-size:1rem;font-weight:600;cursor:pointer;transition:opacity 0.15s;" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">Start</button>
+      <button id="btn-pause" onclick="timerPause()" style="display:none;padding:0.6rem 1.75rem;background:var(--color-surface2);color:var(--color-body);border:1px solid var(--color-border);border-radius:10px;font-size:1rem;font-weight:600;cursor:pointer;" onmouseover="this.style.borderColor='var(--color-accent)'" onmouseout="this.style.borderColor='var(--color-border)'">Pause</button>
+      <button onclick="timerReset()" style="padding:0.6rem 1.75rem;background:var(--color-surface2);color:var(--color-body);border:1px solid var(--color-border);border-radius:10px;font-size:1rem;font-weight:600;cursor:pointer;" onmouseover="this.style.borderColor='var(--color-accent)'" onmouseout="this.style.borderColor='var(--color-border)'">Reset</button>
+    </div>
+  </div>
+
+</Base>
+
+<script>
+  let totalSeconds = 0;
+  let remaining = 0;
+  let intervalId: ReturnType<typeof setInterval> | null = null;
+  let isRunning = false;
+  let flashInterval: ReturnType<typeof setInterval> | null = null;
+
+  function pad2(n: number) { return String(Math.floor(n)).padStart(2,'0'); }
+
+  function formatTime(sec: number) {
+    const h = Math.floor(sec / 3600);
+    const m = Math.floor((sec % 3600) / 60);
+    const s = sec % 60;
+    return `${pad2(h)}:${pad2(m)}:${pad2(s)}`;
+  }
+
+  function updateDisplay() {
+    const display = document.getElementById('big-display')!;
+    display.textContent = formatTime(remaining);
+    const pct = totalSeconds > 0 ? (remaining / totalSeconds) * 100 : 100;
+    document.getElementById('progress-bar')!.style.width = pct + '%';
+    // Color warning when < 10s
+    if (remaining <= 10 && remaining > 0 && isRunning) {
+      display.style.color = 'var(--color-danger)';
+    } else {
+      display.style.color = 'var(--color-heading)';
+    }
+  }
+
+  function getInputSeconds(): number {
+    const h = parseInt((document.getElementById('h-input') as HTMLInputElement).value) || 0;
+    const m = parseInt((document.getElementById('m-input') as HTMLInputElement).value) || 0;
+    const s = parseInt((document.getElementById('s-input') as HTMLInputElement).value) || 0;
+    return h * 3600 + m * 60 + s;
+  }
+
+  function setInputFromSeconds(sec: number) {
+    const h = Math.floor(sec / 3600);
+    const m = Math.floor((sec % 3600) / 60);
+    const s = sec % 60;
+    (document.getElementById('h-input') as HTMLInputElement).value = String(h);
+    (document.getElementById('m-input') as HTMLInputElement).value = String(m);
+    (document.getElementById('s-input') as HTMLInputElement).value = String(s);
+  }
+
+  function adjustInput(id: string, delta: number) {
+    const el = document.getElementById(id) as HTMLInputElement;
+    const max = id === 'h-input' ? 99 : 59;
+    let val = (parseInt(el.value) || 0) + delta;
+    val = Math.max(0, Math.min(max, val));
+    el.value = String(val);
+  }
+
+  function setPreset(sec: number) {
+    timerReset();
+    setInputFromSeconds(sec);
+  }
+
+  function playBeep() {
+    try {
+      const ctx = new AudioContext();
+      const frequencies = [880, 1100, 880, 1100, 880];
+      let time = ctx.currentTime;
+      frequencies.forEach((freq, i) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.type = 'sine';
+        osc.frequency.value = freq;
+        gain.gain.setValueAtTime(0.3, time + i * 0.25);
+        gain.gain.exponentialRampToValueAtTime(0.001, time + i * 0.25 + 0.2);
+        osc.start(time + i * 0.25);
+        osc.stop(time + i * 0.25 + 0.25);
+      });
+    } catch(_) {}
+  }
+
+  function startFlash() {
+    const card = document.getElementById('timer-card')!;
+    let on = false;
+    flashInterval = setInterval(() => {
+      on = !on;
+      card.style.borderColor = on ? 'var(--color-success)' : 'var(--color-border)';
+      card.style.boxShadow = on ? '0 0 30px rgba(34,197,94,0.25)' : 'none';
+    }, 500);
+    setTimeout(() => {
+      if (flashInterval) clearInterval(flashInterval);
+      card.style.borderColor = 'var(--color-border)';
+      card.style.boxShadow = 'none';
+    }, 5000);
+  }
+
+  function timerStart() {
+    const secs = getInputSeconds();
+    if (secs <= 0) return;
+    if (!isRunning) {
+      if (remaining === 0) {
+        totalSeconds = secs;
+        remaining = secs;
+      }
+      isRunning = true;
+      document.getElementById('btn-start')!.style.display = 'none';
+      document.getElementById('btn-pause')!.style.display = '';
+      intervalId = setInterval(() => {
+        if (remaining > 0) {
+          remaining--;
+          updateDisplay();
+        }
+        if (remaining === 0) {
+          clearInterval(intervalId!);
+          intervalId = null;
+          isRunning = false;
+          document.getElementById('btn-start')!.style.display = '';
+          document.getElementById('btn-pause')!.style.display = 'none';
+          document.getElementById('big-display')!.style.color = 'var(--color-success)';
+          playBeep();
+          startFlash();
+        }
+      }, 1000);
+    }
+  }
+
+  function timerPause() {
+    if (isRunning && intervalId) {
+      clearInterval(intervalId);
+      intervalId = null;
+      isRunning = false;
+      document.getElementById('btn-start')!.style.display = '';
+      document.getElementById('btn-pause')!.style.display = 'none';
+    }
+  }
+
+  function timerReset() {
+    if (intervalId) clearInterval(intervalId);
+    if (flashInterval) clearInterval(flashInterval);
+    intervalId = null;
+    flashInterval = null;
+    isRunning = false;
+    remaining = 0;
+    totalSeconds = 0;
+    document.getElementById('btn-start')!.style.display = '';
+    document.getElementById('btn-pause')!.style.display = 'none';
+    document.getElementById('big-display')!.style.color = 'var(--color-heading)';
+    document.getElementById('timer-card')!.style.borderColor = 'var(--color-border)';
+    document.getElementById('timer-card')!.style.boxShadow = 'none';
+    document.getElementById('progress-bar')!.style.width = '100%';
+    document.getElementById('big-display')!.textContent = '00:00:00';
+  }
+
+  (window as any).setPreset = setPreset;
+  (window as any).adjustInput = adjustInput;
+  (window as any).timerStart = timerStart;
+  (window as any).timerPause = timerPause;
+  (window as any).timerReset = timerReset;
+</script>
