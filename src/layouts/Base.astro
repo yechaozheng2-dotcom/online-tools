@@ -64,7 +64,10 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
         <span>⚡</span>
         <span style="font-size: 0.875rem; color: var(--color-muted);">tool.top1pick.com — free tools, no tracking, no login</span>
       </div>
-      <div style="font-size: 0.75rem; color: var(--color-muted);">© 2026</div>
+      <div style="display: flex; gap: 1.25rem; font-size: 0.75rem; color: var(--color-muted);">
+        <a href="/contact/" style="color: var(--color-muted); text-decoration: none;" onmouseover="this.style.color='var(--color-heading)'" onmouseout="this.style.color='var(--color-muted)'">Contact</a>
+        <span>© 2026</span>
+      </div>
     </div>
   </footer>
 </body>
